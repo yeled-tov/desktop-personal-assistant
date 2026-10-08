@@ -37,12 +37,13 @@ public partial class MainWindow : Window
         Title = UiText.Get("title", language); TitleText.Text = UiText.Get("title", language);
         SettingsButton.Content = UiText.Get("settings", language); SendButton.Content = UiText.Get("send", language); TranslateButton.Content = UiText.Get("translate", language);
         OfflineNote.Text = language == "en" ? "Local actions work without an AI connection." : "פעולות מקומיות פועלות גם ללא חיבור AI.";
-        StatusText.Text = $"{UiText.Get("ready", language)} · Ctrl + Alt + Space";
+        StatusText.Text = $"{UiText.Get("ready", language)} · Ctrl + Alt + Shift + A";
     }
 
     private void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
         _tray.Show(); _hotkeys.Register();
+        if (!string.IsNullOrEmpty(_hotkeys.RegistrationMessage)) StatusText.Text = _hotkeys.RegistrationMessage;
         AddAssistant("שלום! אני יכול לפתוח אפליקציות ואתרים, לחפש ברשת ולחשב. אפשר לכתוב בעברית או באנגלית.");
         var settings = App.Services.Settings;
         if (!settings.OnboardingCompleted)
@@ -105,7 +106,7 @@ public partial class MainWindow : Window
         }
         catch (OperationCanceledException) { AddAssistant("הפעולה נעצרה."); }
         catch (Exception ex) { AddAssistant($"הפעולה נכשלה: {ex.Message}"); }
-        finally { _activeTask?.Dispose(); _activeTask = null; StatusText.Text = "מוכן · Ctrl + Alt + Space"; }
+        finally { _activeTask?.Dispose(); _activeTask = null; StatusText.Text = "מוכן · Ctrl + Alt + Shift + A"; }
     }
 
     private void Stop_Click(object sender, RoutedEventArgs e) => StopActiveTask();

@@ -6,7 +6,7 @@ This is a Hebrew-first Windows tray assistant with optional Gemini Online, a bou
 
 ## Implemented
 
-- Tray icon, chat window, first-run welcome, RTL Hebrew-first interface, and global hotkeys: `Ctrl+Alt+Space` and `Win+Shift+T`.
+- Tray icon, chat window, first-run welcome, RTL Hebrew-first interface, and global hotkeys: `Ctrl+Alt+Shift+A` and `Ctrl+Alt+Shift+T`.
 - Application and website launching, YouTube/Google search, basic arithmetic, and closing a named visible window.
 - Settings, per-user startup choice, editable local memory, Hebrew/English labels for the main panel.
 - Gemini API key entry, secure Windows Credential Manager storage, connection test, configurable chat/vision models, and explicit cloud-text opt-in.
@@ -38,12 +38,12 @@ The capture provider captures the virtual desktop. Gemini receives a compressed 
 
 ## Hotkeys, privacy and safety
 
-`Ctrl+Alt+Space` opens the assistant; `Win+Shift+T` opens screen translation. The wake-word setting is disabled because local detection is not implemented; no microphone is used. Gemini requests use an API key in an HTTP header. No secret is written to settings or logs. Risky UI buttons require confirmation. The app runs as the current user, never elevates, and only adds startup behavior after the visible user choice. See [docs/SECURITY.md](docs/SECURITY.md).
+`Ctrl+Alt+Shift+A` opens the assistant; `Ctrl+Alt+Shift+T` opens screen translation. The app checks whether Windows registered each shortcut and reports conflicts in its status line. Startup errors are recorded in `%LOCALAPPDATA%\DesktopAssistant\startup.log`. The wake-word setting is disabled because local detection is not implemented; no microphone is used. Gemini requests use an API key in an HTTP header. No secret is written to settings or logs. Risky UI buttons require confirmation. The app runs as the current user, never elevates, and only adds startup behavior after the visible user choice. See [docs/SECURITY.md](docs/SECURITY.md).
 
 ## מדריך התקנה קצר
 
 1. הפעל את `DesktopAssistant-Setup.exe` והתקן מתפריט ההתקנה.
 2. אפשר להמשיך ללא Gemini לפעולות המקומיות, או לפתוח הגדרות ולחבר מפתח Gemini.
-3. `Ctrl+Alt+Space` פותח את העוזר. `Win+Shift+T` מפעיל תרגום מסך; `Esc` סוגר.
+3. `Ctrl+Alt+Shift+A` פותח את העוזר. `Ctrl+Alt+Shift+T` מפעיל תרגום מסך; `Esc` סוגר.
 4. צילומי מסך נשלחים ל-Gemini רק לאחר הסכמה נפרדת לתרגום או לניתוח.
 5. קול ותרגום מקומי עדיין אינם זמינים; האפליקציה לא מורידה מודלים גדולים.

@@ -5,7 +5,7 @@ namespace DesktopAssistant.Configuration;
 public sealed class UserSettings
 {
     public string UiLanguage { get; set; } = "he";
-    public string AssistantHotkey { get; set; } = "Ctrl+Alt+Space";
+    public string AssistantHotkey { get; set; } = "Ctrl+Alt+Shift+A";
     public bool StartWithWindows { get; set; }
     public bool StartMinimized { get; set; } = true;
     public bool WakeWordEnabled { get; set; }

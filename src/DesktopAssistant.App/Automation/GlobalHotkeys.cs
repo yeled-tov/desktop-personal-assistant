@@ -9,14 +9,22 @@ public sealed class GlobalHotkeys(Window window, Action activate, Action transla
     private const int WmHotkey = 0x0312;
     private const int AssistantId = 0xA101, TranslateId = 0xA102;
     private HwndSource? _source;
+    public string RegistrationMessage { get; private set; } = "";
 
     public void Register()
     {
         var handle = new WindowInteropHelper(window).Handle;
         _source = HwndSource.FromHwnd(handle);
         _source?.AddHook(WindowProc);
-        Native.RegisterHotKey(handle, AssistantId, 0x0002 | 0x0001, 0x20); // Ctrl+Alt+Space
-        Native.RegisterHotKey(handle, TranslateId, 0x0008 | 0x0004, 0x54); // Win+Shift+T
+        var assistantRegistered = Native.RegisterHotKey(handle, AssistantId, 0x0002 | 0x0001 | 0x0004, 0x41); // Ctrl+Alt+Shift+A
+        var translateRegistered = Native.RegisterHotKey(handle, TranslateId, 0x0002 | 0x0001 | 0x0004, 0x54); // Ctrl+Alt+Shift+T
+        if (!assistantRegistered || !translateRegistered)
+        {
+            var unavailable = new List<string>();
+            if (!assistantRegistered) unavailable.Add("פתיחת העוזר");
+            if (!translateRegistered) unavailable.Add("תרגום מסך");
+            RegistrationMessage = $"לא ניתן לרשום קיצור עבור {string.Join(" ו", unavailable)}. ייתכן שהוא תפוס; אפשר לפתוח דרך סמל המגש.";
+        }
     }
 
     private nint WindowProc(nint hwnd, int message, nint wParam, nint lParam, ref bool handled)
