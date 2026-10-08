@@ -6,7 +6,7 @@ name: Build Windows installer
     branches: [main, master]
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -39,12 +39,19 @@ jobs:
         shell: pwsh
         run: .\scripts\build-release.ps1
 
-      - name: Upload Windows installer
-        uses: actions/upload-artifact@v4
-        with:
-          name: DesktopAssistant-Windows-x64
-          path: |
-            artifacts/installer/DesktopAssistant-Setup.exe
-            artifacts/portable/
-          if-no-files-found: error
-          retention-days: 7
+      - name: Package portable build
+        shell: pwsh
+        run: Compress-Archive -Path artifacts/portable/* -DestinationPath artifacts/installer/DesktopAssistant-Portable-Windows-x64.zip -CompressionLevel Optimal
+
+      - name: Publish private GitHub Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = "desktop-assistant-${{ github.run_number }}"
+          gh release create $tag `
+            "artifacts/installer/DesktopAssistant-Setup.exe" `
+            "artifacts/installer/DesktopAssistant-Portable-Windows-x64.zip" `
+            --title "Desktop Assistant Windows build ${{ github.run_number }}" `
+            --notes "Windows x64 installer and portable build. Built from commit ${{ github.sha }}." `
+            --prerelease
