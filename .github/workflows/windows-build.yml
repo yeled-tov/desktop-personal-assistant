@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: windows-2025
     timeout-minutes: 30
 
     steps:
@@ -22,14 +22,9 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
-      - name: Install Inno Setup
+      - name: Locate preinstalled Inno Setup
         shell: pwsh
         run: |
-          $installer = Join-Path $env:RUNNER_TEMP 'innosetup-installer.exe'
-          Invoke-WebRequest -Uri 'https://jrsoftware.org/download.php/is.exe' -OutFile $installer
-          $process = Start-Process -FilePath $installer -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-' -Wait -PassThru
-          if ($process.ExitCode -ne 0) { throw "Inno Setup installation failed with exit code $($process.ExitCode)." }
-
           $installRoots = @(
             'C:\Program Files\Inno Setup 7',
             'C:\Program Files (x86)\Inno Setup 7',
@@ -37,7 +32,7 @@ jobs:
             'C:\Program Files (x86)\Inno Setup 6'
           )
           $compiler = $installRoots | ForEach-Object { Join-Path $_ 'ISCC.exe' } | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
-          if (-not $compiler) { throw 'Inno Setup installed, but ISCC.exe was not found.' }
+          if (-not $compiler) { throw 'The GitHub Windows runner did not provide Inno Setup ISCC.exe.' }
           Add-Content -Path $env:GITHUB_PATH -Value (Split-Path -Parent $compiler)
 
       - name: Restore, build, test, and publish
