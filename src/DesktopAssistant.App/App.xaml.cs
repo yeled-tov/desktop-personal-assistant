@@ -54,7 +54,7 @@ public partial class App : System.Windows.Application
         try
         {
             MessageBox.Show($"עוזר שולחן העבודה לא הצליח להיפתח.\n\nנשמר דוח אבחון כאן:\n{logPath}\n\nפרטים: {exception.Message}",
-                "שגיאה בהפעלת העוזר", MessageBoxButton.OK, MessageBoxImage.Error,
+                "שגיאה בהפעלת העוזר", MessageBoxButton.OK, MessageBoxImage.Error, MessageBoxResult.OK,
                 MessageBoxOptions.RightAlign | MessageBoxOptions.RtlReading);
         }
         catch { }
