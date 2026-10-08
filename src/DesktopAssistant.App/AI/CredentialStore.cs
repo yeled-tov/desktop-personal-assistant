@@ -20,7 +20,12 @@ public static class CredentialStore
             var credential = new Native.Credential { Type = Generic, TargetName = Target, CredentialBlobSize = (uint)bytes.Length, CredentialBlob = memory, Persist = LocalMachinePersistence, UserName = "API key" };
             if (!Native.CredWrite(ref credential, 0)) throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error(), "שמירת המפתח במנהל האישורים נכשלה.");
         }
-        finally { Marshal.ZeroFreeHGlobal(memory); Array.Clear(bytes); }
+        finally
+        {
+            Marshal.Copy(new byte[bytes.Length], 0, memory, bytes.Length);
+            Marshal.FreeHGlobal(memory);
+            Array.Clear(bytes);
+        }
     }
 
     public static bool TryGetApiKey(out string apiKey)
