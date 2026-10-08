@@ -102,9 +102,15 @@ public sealed class GeminiAiProvider(Func<DesktopAssistant.Configuration.UserSet
         };
         var qualityGuidance = settings.TranslationQuality switch { "Fast" => "Prioritize short common UI labels and keep regions compact.", "Accurate" => "Carefully preserve punctuation, numbers, meaning, and mixed-language boundaries.", _ => "Balance translation quality with speed; preserve meaning and concise UI phrasing." };
         var prompt = $"Read all visible text in this screenshot, including mixed languages, and translate every text region to {targetLanguage}. {qualityGuidance} Return only structured JSON matching the schema. For each region, box.left/top/right/bottom must be normalized image coordinates from 0 to 1, relative to the full image. Keep separate nearby labels separate, preserve line grouping where practical, and do not invent text.";
+        var translationParts = new object[]
+        {
+            new { text = prompt },
+            new { inlineData = new { mimeType = "image/jpeg", data = Convert.ToBase64String(imageBytes) } }
+        };
+        var translationContents = new[] { new { role = "user", parts = translationParts } };
         var payload = System.Text.Json.JsonSerializer.Serialize(new
         {
-            contents = new[] { new { role = "user", parts = new object[] { new { text = prompt }, new { inlineData = new { mimeType = "image/jpeg", data = Convert.ToBase64String(imageBytes) } } } },
+            contents = translationContents,
             generationConfig = new { responseMimeType = "application/json", responseSchema = schema, maxOutputTokens = settings.TranslationQuality switch { "Fast" => 6000, "Accurate" => 16000, _ => 12000 } }
         });
         using var request = CreateRequest(settings.GeminiVisionModel, apiKey, payload);
@@ -134,7 +140,13 @@ public sealed class GeminiAiProvider(Func<DesktopAssistant.Configuration.UserSet
         if (!CredentialStore.TryGetApiKey(out var apiKey)) throw new InvalidOperationException("לא נשמר מפתח Gemini במנהל האישורים של Windows.");
         var bytes = EncodeScreenshot(frame.Image);
         var prompt = "Answer the user's question about this screenshot in Hebrew. Be concise, describe only visible facts, and do not pretend to click anything. Question: " + question;
-        var payload = System.Text.Json.JsonSerializer.Serialize(new { contents = new[] { new { role="user", parts = new object[] { new { text=prompt }, new { inlineData = new { mimeType="image/jpeg", data=Convert.ToBase64String(bytes) } } } } });
+        var analysisParts = new object[]
+        {
+            new { text = prompt },
+            new { inlineData = new { mimeType = "image/jpeg", data = Convert.ToBase64String(bytes) } }
+        };
+        var analysisContents = new[] { new { role = "user", parts = analysisParts } };
+        var payload = System.Text.Json.JsonSerializer.Serialize(new { contents = analysisContents });
         using var request = CreateRequest(settings.GeminiVisionModel, apiKey, payload);
         using var response = await SendAsync(request, cancellationToken);
         if (!response.IsSuccessStatusCode) throw UserFacingError(response.StatusCode);
