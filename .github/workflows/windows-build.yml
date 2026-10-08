@@ -1,0 +1,55 @@
+name: Build Windows installer
+
+'on':
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Install .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Install Inno Setup
+        shell: pwsh
+        run: |
+          $installer = Join-Path $env:RUNNER_TEMP 'innosetup-installer.exe'
+          Invoke-WebRequest -Uri 'https://jrsoftware.org/download.php/is.exe' -OutFile $installer
+          $process = Start-Process -FilePath $installer -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-' -Wait -PassThru
+          if ($process.ExitCode -ne 0) { throw "Inno Setup installation failed with exit code $($process.ExitCode)." }
+
+          $installRoots = @(
+            'C:\Program Files\Inno Setup 7',
+            'C:\Program Files (x86)\Inno Setup 7',
+            'C:\Program Files\Inno Setup 6',
+            'C:\Program Files (x86)\Inno Setup 6'
+          )
+          $compiler = $installRoots | ForEach-Object { Join-Path $_ 'ISCC.exe' } | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
+          if (-not $compiler) { throw 'Inno Setup installed, but ISCC.exe was not found.' }
+          Add-Content -Path $env:GITHUB_PATH -Value (Split-Path -Parent $compiler)
+
+      - name: Restore, build, test, and publish
+        shell: pwsh
+        run: .\scripts\build-release.ps1
+
+      - name: Upload Windows installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: DesktopAssistant-Windows-x64
+          path: |
+            artifacts/installer/DesktopAssistant-Setup.exe
+            artifacts/portable/
+          if-no-files-found: error
+          retention-days: 7
