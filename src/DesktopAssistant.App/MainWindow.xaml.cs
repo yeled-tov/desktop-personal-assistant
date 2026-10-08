@@ -5,6 +5,7 @@ using DesktopAssistant.Automation;
 using DesktopAssistant.ScreenTranslation;
 using DesktopAssistant.Localization;
 using DesktopAssistant.AI;
+using DesktopAssistant.Infrastructure;
 using MessageBox = System.Windows.MessageBox;
 
 namespace DesktopAssistant;
