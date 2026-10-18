@@ -1,0 +1,352 @@
+== ggml-org/llama.cpp releases
+TAG b11719 prerelease=true assets=36
+   cudart-llama-b11719-bin-ubuntu-cuda-12.8-x64.tar.gz 594377552
+   cudart-llama-b11719-bin-ubuntu-cuda-13.4-arm64.tar.gz 552521501
+   cudart-llama-b11719-bin-ubuntu-cuda-13.4-x64.tar.gz 440236667
+   cudart-llama-bin-win-cuda-12.4-x64.zip 391443627
+   cudart-llama-bin-win-cuda-13.4-arm64.zip 153262407
+   cudart-llama-bin-win-cuda-13.4-x64.zip 423535356
+   llama-b11719-bin-android-arm64-snapdragon.tar.gz 60169119
+   llama-b11719-bin-android-arm64.tar.gz 76289211
+   llama-b11719-bin-linux-arm64-snapdragon.tar.gz 19670456
+   llama-b11719-bin-macos-arm64.tar.gz 12292550
+   llama-b11719-bin-macos-x64.tar.gz 11781272
+   llama-b11719-bin-ubuntu-arm64.tar.gz 14021506
+   llama-b11719-bin-ubuntu-cuda-12.8-x64.tar.gz 173342707
+   llama-b11719-bin-ubuntu-cuda-13.4-arm64.tar.gz 149755707
+   llama-b11719-bin-ubuntu-cuda-13.4-x64.tar.gz 154225478
+   llama-b11719-bin-ubuntu-openvino-2026.4.1-x64.tar.gz 117487596
+   llama-b11719-bin-ubuntu-rocm-10.0-x64.tar.gz 245239422
+   llama-b11719-bin-ubuntu-s390x.tar.gz 16458333
+   llama-b11719-bin-ubuntu-sycl-fp16-x64.tar.gz 57831882
+   llama-b11719-bin-ubuntu-sycl-fp32-x64.tar.gz 57734906
+   llama-b11719-bin-ubuntu-vulkan-arm64.tar.gz 24308155
+   llama-b11719-bin-ubuntu-vulkan-x64.tar.gz 30611378
+   llama-b11719-bin-ubuntu-x64.tar.gz 17968546
+   llama-b11719-bin-win-cpu-arm64.zip 12549525
+   llama-b11719-bin-win-cpu-x64.zip 19662517
+   llama-b11719-bin-win-cuda-12.4-x64.zip 267483221
+   llama-b11719-bin-win-cuda-13.4-arm64.zip 147323550
+   llama-b11719-bin-win-cuda-13.4-x64.zip 155107842
+   llama-b11719-bin-win-opencl-adreno-arm64.zip 13388900
+   llama-b11719-bin-win-openvino-2026.4.1-x64.zip 99481281
+   llama-b11719-bin-win-rocm-10.0-x64.zip 258689744
+   llama-b11719-bin-win-sycl-x64.zip 149196937
+   llama-b11719-bin-win-vulkan-arm64.zip 24930192
+   llama-b11719-bin-win-vulkan-x64.zip 32306255
+TAG b11718 prerelease=true assets=36
+   cudart-llama-b11718-bin-ubuntu-cuda-12.8-x64.tar.gz 594377289
+   cudart-llama-b11718-bin-ubuntu-cuda-13.4-arm64.tar.gz 552521396
+   cudart-llama-b11718-bin-ubuntu-cuda-13.4-x64.tar.gz 440236552
+   cudart-llama-bin-win-cuda-12.4-x64.zip 391443627
+   cudart-llama-bin-win-cuda-13.4-arm64.zip 153262407
+   cudart-llama-bin-win-cuda-13.4-x64.zip 423535356
+   llama-b11718-bin-android-arm64-snapdragon.tar.gz 60170192
+   llama-b11718-bin-android-arm64.tar.gz 76289160
+   llama-b11718-bin-linux-arm64-snapdragon.tar.gz 19670263
+   llama-b11718-bin-macos-arm64.tar.gz 12292559
+   llama-b11718-bin-macos-x64.tar.gz 11781266
+   llama-b11718-bin-ubuntu-arm64.tar.gz 14020840
+   llama-b11718-bin-ubuntu-cuda-12.8-x64.tar.gz 173301670
+   llama-b11718-bin-ubuntu-cuda-13.4-arm64.tar.gz 149716491
+   llama-b11718-bin-ubuntu-cuda-13.4-x64.tar.gz 154217395
+   llama-b11718-bin-ubuntu-openvino-2026.4.1-x64.tar.gz 117487555
+   llama-b11718-bin-ubuntu-rocm-10.0-x64.tar.gz 245238828
+   llama-b11718-bin-ubuntu-s390x.tar.gz 16464307
+   llama-b11718-bin-ubuntu-sycl-fp16-x64.tar.gz 57832182
+   llama-b11718-bin-ubuntu-sycl-fp32-x64.tar.gz 57734551
+   llama-b11718-bin-ubuntu-vulkan-arm64.tar.gz 24308826
+   llama-b11718-bin-ubuntu-vulkan-x64.tar.gz 30611553
+   llama-b11718-bin-ubuntu-x64.tar.gz 17968484
+   llama-b11718-bin-win-cpu-arm64.zip 12549387
+   llama-b11718-bin-win-cpu-x64.zip 19662572
+   llama-b11718-bin-win-cuda-12.4-x64.zip 267470642
+   llama-b11718-bin-win-cuda-13.4-arm64.zip 147310132
+   llama-b11718-bin-win-cuda-13.4-x64.zip 155072982
+   llama-b11718-bin-win-opencl-adreno-arm64.zip 13388903
+   llama-b11718-bin-win-openvino-2026.4.1-x64.zip 99482991
+   llama-b11718-bin-win-rocm-10.0-x64.zip 258691176
+   llama-b11718-bin-win-sycl-x64.zip 149198647
+   llama-b11718-bin-win-vulkan-arm64.zip 24930194
+   llama-b11718-bin-win-vulkan-x64.zip 32307966
+TAG b11717 prerelease=true assets=36
+   cudart-llama-b11717-bin-ubuntu-cuda-12.8-x64.tar.gz 594377568
+   cudart-llama-b11717-bin-ubuntu-cuda-13.4-arm64.tar.gz 552522075
+   cudart-llama-b11717-bin-ubuntu-cuda-13.4-x64.tar.gz 440236551
+   cudart-llama-bin-win-cuda-12.4-x64.zip 391443627
+   cudart-llama-bin-win-cuda-13.4-arm64.zip 153262407
+   cudart-llama-bin-win-cuda-13.4-x64.zip 423535356
+   llama-b11717-bin-android-arm64-snapdragon.tar.gz 60168911
+   llama-b11717-bin-android-arm64.tar.gz 76289832
+   llama-b11717-bin-linux-arm64-snapdragon.tar.gz 19670201
+   llama-b11717-bin-macos-arm64.tar.gz 12292556
+   llama-b11717-bin-macos-x64.tar.gz 11781255
+   llama-b11717-bin-ubuntu-arm64.tar.gz 14020970
+   llama-b11717-bin-ubuntu-cuda-12.8-x64.tar.gz 173301186
+   llama-b11717-bin-ubuntu-cuda-13.4-arm64.tar.gz 149716261
+   llama-b11717-bin-ubuntu-cuda-13.4-x64.tar.gz 154217837
+   llama-b11717-bin-ubuntu-openvino-2026.4.1-x64.tar.gz 117488529
+   llama-b11717-bin-ubuntu-rocm-10.0-x64.tar.gz 245239230
+   llama-b11717-bin-ubuntu-s390x.tar.gz 16468700
+   llama-b11717-bin-ubuntu-sycl-fp16-x64.tar.gz 57792311
+   llama-b11717-bin-ubuntu-sycl-fp32-x64.tar.gz 57702006
+   llama-b11717-bin-ubuntu-vulkan-arm64.tar.gz 24308747
+   llama-b11717-bin-ubuntu-vulkan-x64.tar.gz 30612580
+   llama-b11717-bin-ubuntu-x64.tar.gz 17969007
+   llama-b11717-bin-win-cpu-arm64.zip 12549405
+   llama-b11717-bin-win-cpu-x64.zip 19662390
+   llama-b11717-bin-win-cuda-12.4-x64.zip 267471291
+   llama-b11717-bin-win-cuda-13.4-arm64.zip 147310168
+   llama-b11717-bin-win-cuda-13.4-x64.zip 155072255
+   llama-b11717-bin-win-opencl-adreno-arm64.zip 13388939
+   llama-b11717-bin-win-openvino-2026.4.1-x64.zip 99482266
+   llama-b11717-bin-win-rocm-10.0-x64.zip 258690449
+   llama-b11717-bin-win-sycl-x64.zip 149178855
+   llama-b11717-bin-win-vulkan-arm64.zip 24930231
+   llama-b11717-bin-win-vulkan-x64.zip 32307240
+TAG b11716 prerelease=true assets=36
+   cudart-llama-b11716-bin-ubuntu-cuda-12.8-x64.tar.gz 594377568
+   cudart-llama-b11716-bin-ubuntu-cuda-13.4-arm64.tar.gz 552521412
+   cudart-llama-b11716-bin-ubuntu-cuda-13.4-x64.tar.gz 440236626
+   cudart-llama-bin-win-cuda-12.4-x64.zip 391443627
+   cudart-llama-bin-win-cuda-13.4-arm64.zip 153262407
+   cudart-llama-bin-win-cuda-13.4-x64.zip 423535356
+   llama-b11716-bin-android-arm64-snapdragon.tar.gz 60143970
+   llama-b11716-bin-android-arm64.tar.gz 76293087
+   llama-b11716-bin-linux-arm64-snapdragon.tar.gz 19650225
+   llama-b11716-bin-macos-arm64.tar.gz 12292446
+   llama-b11716-bin-macos-x64.tar.gz 11781318
+   llama-b11716-bin-ubuntu-arm64.tar.gz 14021713
+   llama-b11716-bin-ubuntu-cuda-12.8-x64.tar.gz 173302468
+   llama-b11716-bin-ubuntu-cuda-13.4-arm64.tar.gz 149716369
+   llama-b11716-bin-ubuntu-cuda-13.4-x64.tar.gz 154217537
+   llama-b11716-bin-ubuntu-openvino-2026.4.1-x64.tar.gz 117487130
+   llama-b11716-bin-ubuntu-rocm-10.0-x64.tar.gz 245240628
+   llama-b11716-bin-ubuntu-s390x.tar.gz 16477880
+   llama-b11716-bin-ubuntu-sycl-fp16-x64.tar.gz 57793618
+   llama-b11716-bin-ubuntu-sycl-fp32-x64.tar.gz 57701541
+   llama-b11716-bin-ubuntu-vulkan-arm64.tar.gz 24308218
+   llama-b11716-bin-ubuntu-vulkan-x64.tar.gz 30610886
+   llama-b11716-bin-ubuntu-x64.tar.gz 17968449
+   llama-b11716-bin-win-cpu-arm64.zip 12549514
+   llama-b11716-bin-win-cpu-x64.zip 19662702
+   llama-b11716-bin-win-cuda-12.4-x64.zip 267472762
+   llama-b11716-bin-win-cuda-13.4-arm64.zip 147310135
+   llama-b11716-bin-win-cuda-13.4-x64.zip 155071236
+   llama-b11716-bin-win-opencl-adreno-arm64.zip 13388906
+   llama-b11716-bin-win-openvino-2026.4.1-x64.zip 99481249
+   llama-b11716-bin-win-rocm-10.0-x64.zip 258689430
+   llama-b11716-bin-win-sycl-x64.zip 149177837
+   llama-b11716-bin-win-vulkan-arm64.zip 24930198
+   llama-b11716-bin-win-vulkan-x64.zip 32306221
+TAG b11715 prerelease=true assets=36
+   cudart-llama-b11715-bin-ubuntu-cuda-12.8-x64.tar.gz 594377551
+   cudart-llama-b11715-bin-ubuntu-cuda-13.4-arm64.tar.gz 552521396
+   cudart-llama-b11715-bin-ubuntu-cuda-13.4-x64.tar.gz 440236542
+   cudart-llama-bin-win-cuda-12.4-x64.zip 391443627
+   cudart-llama-bin-win-cuda-13.4-arm64.zip 153262407
+   cudart-llama-bin-win-cuda-13.4-x64.zip 423535356
+   llama-b11715-bin-android-arm64-snapdragon.tar.gz 60129442
+   llama-b11715-bin-android-arm64.tar.gz 76289563
+   llama-b11715-bin-linux-arm64-snapdragon.tar.gz 19637515
+   llama-b11715-bin-macos-arm64.tar.gz 12292563
+   llama-b11715-bin-macos-x64.tar.gz 11781223
+   llama-b11715-bin-ubuntu-arm64.tar.gz 14020968
+   llama-b11715-bin-ubuntu-cuda-12.8-x64.tar.gz 173301566
+   llama-b11715-bin-ubuntu-cuda-13.4-arm64.tar.gz 149716267
+   llama-b11715-bin-ubuntu-cuda-13.4-x64.tar.gz 154218481
+   llama-b11715-bin-ubuntu-openvino-2026.4.1-x64.tar.gz 117488180
+   llama-b11715-bin-ubuntu-rocm-10.0-x64.tar.gz 245237260
+   llama-b11715-bin-ubuntu-s390x.tar.gz 16466165
+   llama-b11715-bin-ubuntu-sycl-fp16-x64.tar.gz 57791628
+   llama-b11715-bin-ubuntu-sycl-fp32-x64.tar.gz 57703020
+   llama-b11715-bin-ubuntu-vulkan-arm64.tar.gz 24308372
+   llama-b11715-bin-ubuntu-vulkan-x64.tar.gz 30612225
+   llama-b11715-bin-ubuntu-x64.tar.gz 17969239
+   llama-b11715-bin-win-cpu-arm64.zip 12549811
+   llama-b11715-bin-win-cpu-x64.zip 19662498
+   llama-b11715-bin-win-cuda-12.4-x64.zip 267472336
+   llama-b11715-bin-win-cuda-13.4-arm64.zip 147310070
+   llama-b11715-bin-win-cuda-13.4-x64.zip 155072211
+   llama-b11715-bin-win-opencl-adreno-arm64.zip 13388841
+   llama-b11715-bin-win-openvino-2026.4.1-x64.zip 99482226
+   llama-b11715-bin-win-rocm-10.0-x64.zip 258690405
+   llama-b11715-bin-win-sycl-x64.zip 149178811
+   llama-b11715-bin-win-vulkan-arm64.zip 24930133
+   llama-b11715-bin-win-vulkan-x64.zip 32307196
+TAG b11714 prerelease=true assets=36
+   cudart-llama-b11714-bin-ubuntu-cuda-12.8-x64.tar.gz 594377835
+   cudart-llama-b11714-bin-ubuntu-cuda-13.4-arm64.tar.gz 552521503
+   cudart-llama-b11714-bin-ubuntu-cuda-13.4-x64.tar.gz 440236540
+   cudart-llama-bin-win-cuda-12.4-x64.zip 391443627
+   cudart-llama-bin-win-cuda-13.4-arm64.zip 153262407
+   cudart-llama-bin-win-cuda-13.4-x64.zip 423535356
+   llama-b11714-bin-android-arm64-snapdragon.tar.gz 60127366
+   llama-b11714-bin-android-arm64.tar.gz 76293362
+   llama-b11714-bin-linux-arm64-snapdragon.tar.gz 19637804
+   llama-b11714-bin-macos-arm64.tar.gz 12292418
+   llama-b11714-bin-macos-x64.tar.gz 11781228
+   llama-b11714-bin-ubuntu-arm64.tar.gz 14020865
+   llama-b11714-bin-ubuntu-cuda-12.8-x64.tar.gz 173317022
+   llama-b11714-bin-ubuntu-cuda-13.4-arm64.tar.gz 149661146
+   llama-b11714-bin-ubuntu-cuda-13.4-x64.tar.gz 154214650
+   llama-b11714-bin-ubuntu-openvino-2026.4.1-x64.tar.gz 117487389
+   llama-b11714-bin-ubuntu-rocm-10.0-x64.tar.gz 246063929
+   llama-b11714-bin-ubuntu-s390x.tar.gz 16472298
+   llama-b11714-bin-ubuntu-sycl-fp16-x64.tar.gz 57794240
+   llama-b11714-bin-ubuntu-sycl-fp32-x64.tar.gz 57699609
+   llama-b11714-bin-ubuntu-vulkan-arm64.tar.gz 24308168
+   llama-b11714-bin-ubuntu-vulkan-x64.tar.gz 30610697
+   llama-b11714-bin-ubuntu-x64.tar.gz 17968637
+   llama-b11714-bin-win-cpu-arm64.zip 12549882
+   llama-b11714-bin-win-cpu-x64.zip 19662606
+   llama-b11714-bin-win-cuda-12.4-x64.zip 267478421
+   llama-b11714-bin-win-cuda-13.4-arm64.zip 147299761
+   llama-b11714-bin-win-cuda-13.4-x64.zip 155068925
+   llama-b11714-bin-win-opencl-adreno-arm64.zip 13388882
+   llama-b11714-bin-win-openvino-2026.4.1-x64.zip 99481265
+   llama-b11714-bin-win-rocm-10.0-x64.zip 259376079
+   llama-b11714-bin-win-sycl-x64.zip 149177851
+   llama-b11714-bin-win-vulkan-arm64.zip 24930173
+   llama-b11714-bin-win-vulkan-x64.zip 32306237
+== ggml-org/whisper.cpp releases
+TAG v1.9.5 prerelease=false assets=0
+
+TAG b5454 prerelease=true assets=12
+   whisper-bin-ubuntu-arm64.tar.gz 4608377
+   whisper-bin-ubuntu-x64.tar.gz 10364195
+   whisper-bin-win-cpu-arm64.zip 4371193
+   whisper-bin-win-cuda-11.8.0-x64.zip 284761231
+   whisper-bin-win-cuda-12.4.0-x64.zip 684913404
+   whisper-bin-win-cuda-13.4-arm64.zip 291157544
+   whisper-bin-win-opencl-adreno-arm64.zip 4944716
+   whisper-bin-Win32.zip 5523979
+   whisper-bin-x64.zip 8928640
+   whisper-blas-bin-Win32.zip 12555466
+   whisper-blas-bin-x64.zip 21715607
+TAG v1.9.4 prerelease=false assets=0
+
+TAG b5130 prerelease=true assets=12
+   whisper-bin-ubuntu-arm64.tar.gz 4605905
+   whisper-bin-ubuntu-x64.tar.gz 9793438
+   whisper-bin-win-cpu-arm64.zip 4361895
+   whisper-bin-win-cuda-13.4-arm64.zip 289031131
+   whisper-bin-win-opencl-adreno-arm64.zip 4893039
+   whisper-bin-Win32.zip 5384054
+   whisper-bin-x64.zip 8573270
+   whisper-blas-bin-Win32.zip 12415527
+   whisper-blas-bin-x64.zip 21360234
+   whisper-cublas-11.8.0-bin-x64.zip 272982859
+   whisper-cublas-12.4.0-bin-x64.zip 674539285
+TAG b5127 prerelease=true assets=12
+   whisper-bin-ubuntu-arm64.tar.gz 4605848
+   whisper-bin-ubuntu-x64.tar.gz 9792145
+   whisper-bin-win-cpu-arm64.zip 4361885
+   whisper-bin-win-cuda-13.4.0-arm64.zip 289089981
+   whisper-bin-win-opencl-adreno-arm64.zip 4893022
+   whisper-bin-Win32.zip 5384054
+   whisper-bin-x64.zip 8573262
+   whisper-blas-bin-Win32.zip 12415531
+   whisper-blas-bin-x64.zip 21360231
+   whisper-cublas-11.8.0-bin-x64.zip 272982836
+   whisper-cublas-12.4.0-bin-x64.zip 674539278
+TAG v1.9.3 prerelease=true assets=0
+
+whisper url: https://github.com/ggml-org/whisper.cpp/releases/download/b5454/whisper-bin-x64.zip
+Archive:  w.zip
+  Length      Date    Time    Name
+---------  ---------- -----   ----
+    27648  2026-10-06 14:32   Release/bench.exe
+    27648  2026-10-06 14:32   Release/command.exe
+   693248  2026-10-06 14:30   Release/ggml-base.dll
+  1009664  2026-10-06 14:30   Release/ggml-cpu-alderlake.dll
+  1049600  2026-10-06 14:31   Release/ggml-cpu-cannonlake.dll
+  1061376  2026-10-06 14:31   Release/ggml-cpu-cascadelake.dll
+  1010688  2026-10-06 14:31   Release/ggml-cpu-haswell.dll
+  1061376  2026-10-06 14:31   Release/ggml-cpu-icelake.dll
+  1026560  2026-10-06 14:31   Release/ggml-cpu-sandybridge.dll
+  1049600  2026-10-06 14:31   Release/ggml-cpu-skylakex.dll
+   862720  2026-10-06 14:32   Release/ggml-cpu-sse42.dll
+   866816  2026-10-06 14:32   Release/ggml-cpu-x64.dll
+    62464  2026-10-06 14:32   Release/ggml.dll
+  2755072  2026-10-06 14:33   Release/llama.dll
+    27648  2026-10-06 14:33   Release/main.exe
+   372224  2026-10-06 14:33   Release/parakeet-cli.exe
+   102912  2026-10-06 14:33   Release/parakeet-quantize.exe
+   582144  2026-10-06 14:33   Release/parakeet.dll
+  2500096  2023-11-02 17:05   Release/SDL2.dll
+    27648  2026-10-06 14:33   Release/stream.exe
+   324608  2026-10-06 14:33   Release/test-common-utf8.exe
+   369664  2026-10-06 14:33   Release/test-parakeet-full-diffusion.exe
+   366080  2026-10-06 14:33   Release/test-parakeet-full-gb1.exe
+   366080  2026-10-06 14:33   Release/test-parakeet-full-jfk.exe
+   354816  2026-10-06 14:33   Release/test-parakeet.exe
+   355840  2026-10-06 14:33   Release/test-vad-full.exe
+   354304  2026-10-06 14:33   Release/test-vad.exe
+    11264  2026-10-06 14:33   Release/test-whisper-buffer-loader.exe
+    13312  2026-10-06 14:33   Release/test-whisper-lang-detect-abort.exe
+    11776  2026-10-06 14:33   Release/test-whisper-zero-samples.exe
+   178688  2026-10-06 14:33   Release/wchess.exe
+    20480  2026-10-06 14:33   Release/whisper-bench.exe
+   479744  2026-10-06 14:33   Release/whisper-cli.exe
+   176640  2026-10-06 14:33   Release/whisper-command.exe
+   180736  2026-10-06 14:33   Release/whisper-lsp.exe
+   111616  2026-10-06 14:33   Release/whisper-quantize.exe
+   726016  2026-10-06 14:33   Release/whisper-server.exe
+llama url: https://github.com/ggml-org/llama.cpp/releases/download/b11719/llama-b11719-bin-win-cpu-x64.zip
+Archive:  l.zip
+  Length      Date    Time    Name
+---------  ---------- -----   ----
+   803840  2026-10-18 09:35   ggml-base.dll
+  1415168  2026-10-18 09:35   ggml-cpu-alderlake.dll
+  1610752  2026-10-18 09:35   ggml-cpu-cannonlake.dll
+  1583616  2026-10-18 09:35   ggml-cpu-cascadelake.dll
+  1593344  2026-10-18 09:35   ggml-cpu-cooperlake.dll
+  1420288  2026-10-18 09:35   ggml-cpu-haswell.dll
+  1590272  2026-10-18 09:35   ggml-cpu-icelake.dll
+  1301504  2026-10-18 09:35   ggml-cpu-ivybridge.dll
+  1294336  2026-10-18 09:35   ggml-cpu-piledriver.dll
+  1291264  2026-10-18 09:35   ggml-cpu-sandybridge.dll
+  1869824  2026-10-18 09:35   ggml-cpu-sapphirerapids.dll
+  1603584  2026-10-18 09:35   ggml-cpu-skylakex.dll
+   916992  2026-10-18 09:35   ggml-cpu-sse42.dll
+   909824  2026-10-18 09:35   ggml-cpu-x64.dll
+  1600000  2026-10-18 09:35   ggml-cpu-zen4.dll
+   117248  2026-10-18 09:35   ggml-rpc-server.exe
+   231424  2026-10-18 09:35   ggml-rpc.dll
+    78848  2026-10-18 09:35   ggml.dll
+   768000  2026-10-18 09:34   libomp.dll
+    19741  2026-10-18 09:34   LICENSE-LLVM-OpenMP
+    61952  2026-10-18 09:35   llama-batched-bench-impl.dll
+     9216  2026-10-18 09:35   llama-batched-bench.exe
+   404480  2026-10-18 09:35   llama-bench-impl.dll
+     9216  2026-10-18 09:35   llama-bench.exe
+  3337216  2026-10-18 09:35   llama-cli-impl.dll
+     9216  2026-10-18 09:35   llama-cli.exe
+  8161792  2026-10-18 09:35   llama-common.dll
+   140800  2026-10-18 09:35   llama-completion-impl.dll
+     9216  2026-10-18 09:35   llama-completion.exe
+    43008  2026-10-18 09:35   llama-fit-params-impl.dll
+     9216  2026-10-18 09:35   llama-fit-params.exe
+    27136  2026-10-18 09:35   llama-gemma3-cli.exe
+    60416  2026-10-18 09:35   llama-gguf-split.exe
+   252416  2026-10-18 09:35   llama-imatrix.exe
+    27136  2026-10-18 09:35   llama-llava-cli.exe
+    27136  2026-10-18 09:35   llama-minicpmv-cli.exe
+    96768  2026-10-18 09:35   llama-mtmd-cli.exe
+    55808  2026-10-18 09:35   llama-mtmd-debug.exe
+   197632  2026-10-18 09:35   llama-perplexity-impl.dll
+     9216  2026-10-18 09:35   llama-perplexity.exe
+   137216  2026-10-18 09:35   llama-quantize-impl.dll
+     9216  2026-10-18 09:35   llama-quantize.exe
+    27136  2026-10-18 09:35   llama-qwen2vl-cli.exe
+    46592  2026-10-18 09:35   llama-results.exe
+  9357824  2026-10-18 09:35   llama-server-impl.dll
+     9216  2026-10-18 09:35   llama-server.exe
+    58880  2026-10-18 09:35   llama-tokenize.exe
+    41984  2026-10-18 09:35   llama-tts.exe
+  3581952  2026-10-18 09:35   llama.dll
+   104448  2026-10-18 09:35   llama.exe
+  1905664  2026-10-18 09:35   mtmd.dll
+---------                     -------
+ 50248989                     51 files
