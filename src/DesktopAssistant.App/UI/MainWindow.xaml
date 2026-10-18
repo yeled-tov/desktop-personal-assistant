@@ -1,0 +1,84 @@
+<Window x:Class="DesktopAssistant.UI.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="העוזר" Width="470" Height="660" MinWidth="380" MinHeight="420"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent" ResizeMode="CanResizeWithGrip"
+        ShowInTaskbar="False" Topmost="True" FlowDirection="RightToLeft"
+        FontFamily="{StaticResource UiFont}" Foreground="{StaticResource TextPrimary}">
+  <Border x:Name="Shell" Margin="14" CornerRadius="24" Background="{StaticResource Surface}" BorderBrush="{StaticResource GeminiGradient}" BorderThickness="1.2">
+    <Border.Effect>
+      <DropShadowEffect BlurRadius="30" ShadowDepth="4" Opacity="0.5" />
+    </Border.Effect>
+    <Grid Margin="16,10,16,14">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="*" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+      </Grid.RowDefinitions>
+
+      <!-- Header (drag to move) -->
+      <DockPanel x:Name="Header" Grid.Row="0" Background="Transparent" Margin="0,0,0,6">
+        <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
+          <Button x:Name="NewChatButton" Style="{StaticResource IconButton}" Content="＋" ToolTip="שיחה חדשה" Click="NewChat_Click" />
+          <Button x:Name="SettingsButton" Style="{StaticResource IconButton}" Content="⚙" ToolTip="הגדרות" Click="Settings_Click" />
+          <Button x:Name="CloseButton" Style="{StaticResource IconButton}" Content="✕" ToolTip="הסתר (Esc)" Click="Close_Click" />
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+          <TextBlock Text="✦" FontSize="22" Foreground="{StaticResource GeminiGradient}" VerticalAlignment="Center" Margin="0,0,8,0" />
+          <StackPanel>
+            <TextBlock Text="העוזר שלך" FontSize="17" FontWeight="SemiBold" />
+            <TextBlock x:Name="ProviderText" Text="" FontSize="11.5" Foreground="{StaticResource TextSecondary}" />
+          </StackPanel>
+        </StackPanel>
+      </DockPanel>
+
+      <!-- Conversation -->
+      <ScrollViewer x:Name="Scroll" Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,4,4,4">
+        <StackPanel x:Name="Messages" />
+      </ScrollViewer>
+
+      <!-- Live activity -->
+      <Border x:Name="ActivityBar" Grid.Row="2" Visibility="Collapsed" Margin="0,6,0,4" Padding="12,8" CornerRadius="14" Background="{StaticResource SurfaceRaised}">
+        <DockPanel>
+          <Button DockPanel.Dock="Left" Content="■ עצור" Padding="12,4" Background="#C5453B" Foreground="White" Click="Stop_Click" />
+          <StackPanel VerticalAlignment="Center">
+            <TextBlock x:Name="ActivityText" Text="חושב…" Foreground="{StaticResource TextSecondary}" FontSize="13" />
+            <ProgressBar IsIndeterminate="True" Height="2" Margin="0,6,0,0" Foreground="{StaticResource GeminiGradient}" Background="Transparent" BorderThickness="0" />
+          </StackPanel>
+        </DockPanel>
+      </Border>
+
+      <!-- Attached image chip -->
+      <Border x:Name="AttachmentChip" Grid.Row="3" Visibility="Collapsed" HorizontalAlignment="Right" Margin="0,4,6,4" Padding="6" CornerRadius="10" Background="{StaticResource SurfaceRaised}">
+        <StackPanel Orientation="Horizontal">
+          <Image x:Name="AttachmentImage" FlowDirection="LeftToRight" Height="44" MaxWidth="120" Stretch="Uniform" />
+          <Button Style="{StaticResource IconButton}" Width="28" Height="28" Padding="0" Content="✕" Click="RemoveAttachment_Click" ToolTip="הסר תמונה" />
+        </StackPanel>
+      </Border>
+
+      <!-- Input -->
+      <Border Grid.Row="4" CornerRadius="26" Background="{StaticResource SurfaceRaised}" Padding="6" Margin="0,4,0,0">
+        <DockPanel>
+          <Button x:Name="SendButton" DockPanel.Dock="Left" Style="{StaticResource AccentButton}" Width="40" Height="40" Padding="0" Margin="2" Content="➤" FontSize="16" ToolTip="שלח (Enter)" Click="Send_Click" />
+          <Button x:Name="MicButton" DockPanel.Dock="Left" Style="{StaticResource IconButton}" Width="40" Height="40" Content="🎙" ToolTip="דבר (Ctrl+Alt+V)" Click="Mic_Click" />
+          <Button x:Name="ScreenButton" DockPanel.Dock="Left" Style="{StaticResource IconButton}" Width="40" Height="40" Content="▣" ToolTip="צרף את המסך לשאלה" Click="Screen_Click" />
+          <Button x:Name="CircleButton" DockPanel.Dock="Left" Style="{StaticResource IconButton}" Width="40" Height="40" Content="◎" ToolTip="הקף וחפש (Ctrl+Alt+S)" Click="Circle_Click" />
+          <Grid>
+            <TextBox x:Name="Input" Background="Transparent" BorderThickness="0" Foreground="{StaticResource TextPrimary}" CaretBrush="{StaticResource TextPrimary}"
+                     FontSize="15" Padding="8,6" VerticalContentAlignment="Center" TextWrapping="Wrap" AcceptsReturn="False" MaxHeight="140"
+                     VerticalScrollBarVisibility="Auto" PreviewKeyDown="Input_PreviewKeyDown" TextChanged="Input_TextChanged" />
+            <TextBlock x:Name="Placeholder" Text="שאל אותי או תן לי משימה…" Foreground="{StaticResource TextSecondary}" FontSize="15" Margin="11,0" VerticalAlignment="Center" IsHitTestVisible="False" />
+            <Border x:Name="ListeningPanel" Visibility="Collapsed" Background="{StaticResource SurfaceRaised}">
+              <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0">
+                <TextBlock x:Name="ListeningText" Text="מקשיב…" FontSize="15" Foreground="{StaticResource TextPrimary}" VerticalAlignment="Center" />
+                <Border x:Name="LevelBar" Height="6" Width="4" Margin="12,0,0,0" CornerRadius="3" Background="{StaticResource GeminiGradient}" VerticalAlignment="Center" />
+              </StackPanel>
+            </Border>
+          </Grid>
+        </DockPanel>
+      </Border>
+    </Grid>
+  </Border>
+</Window>

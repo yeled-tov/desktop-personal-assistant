@@ -3,7 +3,8 @@ name: Build Windows installer
 'on':
   workflow_dispatch:
   push:
-    branches: [main, master]
+    branches: ['**']
+    paths-ignore: ['**.md']
 
 permissions:
   contents: write
@@ -22,36 +23,41 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
-      - name: Locate preinstalled Inno Setup
+      - name: Locate Inno Setup
         shell: pwsh
         run: |
-          $installRoots = @(
-            'C:\Program Files\Inno Setup 7',
-            'C:\Program Files (x86)\Inno Setup 7',
-            'C:\Program Files\Inno Setup 6',
-            'C:\Program Files (x86)\Inno Setup 6'
-          )
-          $compiler = $installRoots | ForEach-Object { Join-Path $_ 'ISCC.exe' } | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
-          if (-not $compiler) { throw 'The GitHub Windows runner did not provide Inno Setup ISCC.exe.' }
+          $compiler = @('C:\Program Files (x86)\Inno Setup 6\ISCC.exe','C:\Program Files\Inno Setup 6\ISCC.exe','C:\Program Files (x86)\Inno Setup 7\ISCC.exe','C:\Program Files\Inno Setup 7\ISCC.exe') |
+            Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
+          if (-not $compiler) { choco install innosetup -y --no-progress | Out-Null; $compiler = 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe' }
           Add-Content -Path $env:GITHUB_PATH -Value (Split-Path -Parent $compiler)
 
-      - name: Restore, build, test, and publish
+      - name: Build, launch-test (smoke test on real Windows) and package
         shell: pwsh
-        run: .\scripts\build-release.ps1
+        run: |
+          $version = "2.0.${{ github.run_number }}"
+          .\scripts\build-release.ps1 -Version $version
+          "APP_VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       - name: Package portable build
         shell: pwsh
-        run: Compress-Archive -Path artifacts/portable/* -DestinationPath artifacts/installer/DesktopAssistant-Portable-Windows-x64.zip -CompressionLevel Optimal
+        run: Compress-Archive -Path artifacts/portable/DesktopAssistant.exe -DestinationPath artifacts/installer/DesktopAssistant-Portable-Windows-x64.zip -CompressionLevel Optimal
 
-      - name: Publish private GitHub Release
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: DesktopAssistant-${{ env.APP_VERSION }}
+          path: artifacts/installer/*
+
+      - name: Publish GitHub Release
+        if: github.ref == 'refs/heads/main'
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $tag = "desktop-assistant-${{ github.run_number }}"
+          $tag = "v$env:APP_VERSION"
           gh release create $tag `
             "artifacts/installer/DesktopAssistant-Setup.exe" `
             "artifacts/installer/DesktopAssistant-Portable-Windows-x64.zip" `
-            --title "Desktop Assistant Windows build ${{ github.run_number }}" `
-            --notes "Windows x64 installer and portable build. Built from commit ${{ github.sha }}." `
-            --prerelease
+            --title "העוזר האישי $env:APP_VERSION" `
+            --notes "מתקין ל-Windows 10/11 (x64). הורד את DesktopAssistant-Setup.exe והפעל. נבנה מ-${{ github.sha }} ועבר בדיקת הפעלה אוטומטית על Windows." `
+            --latest

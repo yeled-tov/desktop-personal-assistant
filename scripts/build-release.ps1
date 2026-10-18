@@ -1,38 +1,48 @@
 [CmdletBinding()]
-param([switch]$SkipInstaller)
+param(
+  [string]$Version = '2.0.0',
+  [switch]$SkipInstaller,
+  [switch]$SkipSmokeTest
+)
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
-$solution = Join-Path $root 'DesktopAssistant.sln'
 $app = Join-Path $root 'src\DesktopAssistant.App\DesktopAssistant.App.csproj'
-$iconPath = Join-Path $root 'src\DesktopAssistant.App\app.ico'
 $publishDir = Join-Path $root 'artifacts\portable'
 $installerDir = Join-Path $root 'artifacts\installer'
 
-if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) { throw 'לא נמצא .NET SDK. יש להתקין .NET 10 SDK כדי לבנות את האפליקציה.' }
-$installedSdks = dotnet --list-sdks
-if ($LASTEXITCODE -ne 0 -or -not $installedSdks) { throw 'נמצא רק .NET Runtime ללא SDK. יש להתקין .NET 10 SDK כדי לשחזר, לבנות ולפרסם.' }
-if (-not (Get-Command iscc -ErrorAction SilentlyContinue) -and -not $SkipInstaller) { throw 'לא נמצא Inno Setup Compiler (ISCC). התקן Inno Setup או הרץ עם ‎-SkipInstaller‎ כדי לפרסם EXE בלבד.' }
+if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) { throw 'לא נמצא .NET SDK. התקן .NET 10 SDK: https://dotnet.microsoft.com/download' }
 
+Remove-Item -Recurse -Force $publishDir -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force -Path $publishDir, $installerDir | Out-Null
-& (Join-Path $PSScriptRoot 'new-icon.ps1')
-dotnet restore $solution
-if ($LASTEXITCODE -ne 0) { throw 'שחזור החבילות נכשל.' }
-dotnet build $solution -c Release --no-restore
-if ($LASTEXITCODE -ne 0) { throw 'בנייה ב-Release נכשלה.' }
-dotnet run --project (Join-Path $root 'tests\DesktopAssistant.Tests\DesktopAssistant.Tests.csproj') -c Release --no-build
-if ($LASTEXITCODE -ne 0) { throw 'בדיקות הליבה נכשלו.' }
-dotnet publish $app -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=None -p:DebugSymbols=false -o $publishDir
-if ($LASTEXITCODE -ne 0) { throw 'פרסום EXE נכשל.' }
+
+Write-Host "== Publishing v$Version ==" -ForegroundColor Cyan
+dotnet publish $app -c Release -r win-x64 --self-contained true `
+  -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true `
+  -p:DebugType=None -p:DebugSymbols=false -p:Version=$Version -o $publishDir
+if ($LASTEXITCODE -ne 0) { throw 'הבנייה נכשלה.' }
 $exe = Join-Path $publishDir 'DesktopAssistant.exe'
 if (-not (Test-Path $exe)) { throw "קובץ EXE לא נוצר: $exe" }
-$publishedIcon = Join-Path $publishDir 'app.ico'
-if (-not (Test-Path $publishedIcon)) { Copy-Item -LiteralPath $iconPath -Destination $publishedIcon -Force }
+
+if (-not $SkipSmokeTest) {
+  Write-Host '== Smoke test: launching the real EXE ==' -ForegroundColor Cyan
+  $marker = Join-Path $env:LOCALAPPDATA 'DesktopAssistant\smoke-result.txt'
+  Remove-Item $marker -ErrorAction SilentlyContinue
+  $p = Start-Process -FilePath $exe -ArgumentList '--smoke-test' -PassThru
+  if (-not $p.WaitForExit(150000)) { Stop-Process -Id $p.Id -Force; throw 'Smoke test: the app hung.' }
+  $result = if (Test-Path $marker) { Get-Content $marker -Raw } else { '(no result file)' }
+  Write-Host $result
+  $log = Get-ChildItem (Join-Path $env:LOCALAPPDATA 'DesktopAssistant\logs') -Filter 'app-*.log' -ErrorAction SilentlyContinue | Sort-Object LastWriteTime | Select-Object -Last 1
+  if ($log) { Write-Host '--- app log ---'; Get-Content $log.FullName -Tail 60 }
+  if ($p.ExitCode -ne 0 -or -not $result.StartsWith('SMOKE OK')) { throw "Smoke test failed (exit code $($p.ExitCode))." }
+  Write-Host 'Smoke test passed.' -ForegroundColor Green
+}
+
 if (-not $SkipInstaller) {
+  $iscc = Get-Command iscc -ErrorAction SilentlyContinue
+  if (-not $iscc) { throw 'לא נמצא Inno Setup (ISCC). התקן מ-https://jrsoftware.org/isinfo.php או הרץ עם -SkipInstaller.' }
   $iss = Join-Path $root 'installer\DesktopAssistant.iss'
-  iscc "/DAppVersion=0.1.0" "/DSourceDir=$publishDir" "/DOutputDir=$installerDir" $iss
+  iscc "/DAppVersion=$Version" "/DSourceDir=$publishDir" "/DOutputDir=$installerDir" $iss
   if ($LASTEXITCODE -ne 0) { throw 'יצירת המתקין נכשלה.' }
-  $setup = Join-Path $installerDir 'DesktopAssistant-Setup.exe'
-  if (-not (Test-Path $setup)) { throw "קובץ המתקין לא נוצר: $setup" }
+  Write-Host "Installer: $(Join-Path $installerDir 'DesktopAssistant-Setup.exe')" -ForegroundColor Green
 }
 Write-Host "Portable EXE: $exe"
-if (-not $SkipInstaller) { Write-Host "Installer: $(Join-Path $installerDir 'DesktopAssistant-Setup.exe')" }
