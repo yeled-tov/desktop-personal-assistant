@@ -1,0 +1,31 @@
+name: Probe download URLs
+'on':
+  push:
+    branches: ['probe/**']
+permissions:
+  contents: write
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Query
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+          echo "== llama.cpp latest"; gh api repos/ggml-org/llama.cpp/releases/latest --jq '.tag_name, (.assets[] | select(.name|test("win")) | .name + " " + (.size|tostring))'
+          echo "== whisper.cpp latest"; gh api repos/ggml-org/whisper.cpp/releases/latest --jq '.tag_name, (.assets[] | .name + " " + (.size|tostring))'
+          for m in Qwen/Qwen3-VL-4B-Instruct-GGUF Qwen/Qwen3-VL-2B-Instruct-GGUF ggml-org/gemma-3-4b-it-GGUF ggml-org/Qwen3-VL-4B-Instruct-GGUF unsloth/gemma-3n-E4B-it-GGUF ggerganov/whisper.cpp ivrit-ai/whisper-large-v3-turbo-ggml ivrit-ai/whisper-large-v3-ggml; do
+            echo "== HF $m"; curl -s "https://huggingface.co/api/models/$m/tree/main" | python3 -c "import json,sys
+          try:
+            d=json.load(sys.stdin)
+            for f in d:
+              if f.get('type')=='file': print(f['path'], f.get('size'))
+          except Exception as e: print('ERR', e)"
+          done
+          echo "== whisper zip listing"; url=$(gh api repos/ggml-org/whisper.cpp/releases/latest --jq '.assets[] | select(.name=="whisper-bin-x64.zip") | .browser_download_url'); curl -sL -o w.zip "$url" && unzip -l w.zip | head -40
+          echo "== llama zip listing"; url=$(gh api repos/ggml-org/llama.cpp/releases/latest --jq '.assets[] | select(.name|test("bin-win-cpu-x64.zip$")) | .browser_download_url'); echo $url; curl -sL -o l.zip "$url" && unzip -l l.zip | head -60
+          } > probe.txt 2>&1
+          git config user.name ci; git config user.email ci@example.com
+          git add probe.txt; git commit -qm "probe [skip ci]"; git push
