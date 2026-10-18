@@ -83,9 +83,13 @@ public static class ScreenVision
     {
         var lines = await OcrLinesAsync(image);
         if (lines is null) return null;
+        // Only what needs translating: skip lines already in the target script, symbols/numbers, and duplicates.
+        var targetIsHebrew = targetLanguage.Contains("עברית") || targetLanguage.StartsWith("he", StringComparison.OrdinalIgnoreCase);
+        lines = lines.Where(l => l.Text.Count(char.IsLetter) >= 2 && !(targetIsHebrew && l.Text.Any(c => c >= 'א' && c <= 'ת'))).Take(120).ToList();
         if (lines.Count == 0) return [];
         var results = new List<TranslatedRegion>();
-        foreach (var chunk in lines.Chunk(40))
+        var cache = new Dictionary<string, string>();
+        foreach (var chunk in lines.DistinctBy(l => l.Text).Chunk(20))
         {
             var input = new System.Text.Json.Nodes.JsonArray(chunk.Select(l => (System.Text.Json.Nodes.JsonNode?)l.Text).ToArray());
             var prompt = $$"""
@@ -94,16 +98,18 @@ public static class ScreenVision
                 Return JSON only: {"t":["...", "..."]}
                 {{input.ToJsonString()}}
                 """;
-            var reply = await model.CompleteAsync("", [ChatMessage.User(prompt)], [], new ModelOptions(JsonOutput: true, MaxOutputTokens: 4000), cancellationToken);
+            // A tight output budget keeps a small local model from rambling (and the screen from waiting).
+            var budget = 80 + chunk.Sum(l => l.Text.Length) * 2;
+            var reply = await model.CompleteAsync("", [ChatMessage.User(prompt)], [], new ModelOptions(JsonOutput: true, MaxOutputTokens: Math.Min(3000, budget)), cancellationToken);
             var translated = ParseJson(reply.Text)?["t"] as JsonArray;
             for (var i = 0; i < chunk.Length; i++)
             {
-                var line = chunk[i];
                 var text = translated is not null && i < translated.Count ? translated[i]?.ToString() ?? "" : "";
-                if (text.Length == 0 || text == line.Text) continue;
-                results.Add(new TranslatedRegion(line.Text, text, line.Left, line.Top, line.Right, line.Bottom));
+                if (text.Length > 0 && text != chunk[i].Text) cache[chunk[i].Text] = text;
             }
         }
+        foreach (var line in lines)
+            if (cache.TryGetValue(line.Text, out var text)) results.Add(new TranslatedRegion(line.Text, text, line.Left, line.Top, line.Right, line.Bottom));
         return results;
     }
 
