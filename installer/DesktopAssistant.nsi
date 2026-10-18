@@ -1,4 +1,5 @@
-; Installer for "העוזר האישי" (Desktop Personal Assistant)
+﻿; Installer for "שיר – עוזרת AI למחשב" (Desktop Personal Assistant)
+; NOTE: this file must stay UTF-8 *with BOM* — without it makensis on Windows reads the Hebrew as ANSI and shows gibberish.
 ; Build:  makensis -DVERSION=2.0.0 -DSOURCE_DIR=..\artifacts\portable -DOUT_FILE=..\artifacts\installer\DesktopAssistant-Setup.exe installer\DesktopAssistant.nsi
 ; Works with makensis on Windows and on Linux.
 
@@ -17,7 +18,8 @@ ManifestDPIAware true
   !define OUT_FILE "..\artifacts\installer\DesktopAssistant-Setup.exe"
 !endif
 
-!define APP_NAME "העוזר האישי"
+!define APP_NAME "שיר – עוזרת AI למחשב"
+!define SHORT_NAME "שיר"
 !define APP_EXE "DesktopAssistant.exe"
 !define APP_ID "DesktopAssistant"
 !define UNINSTALL_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_ID}"
@@ -41,10 +43,12 @@ VIAddVersionKey /LANG=1037 "LegalCopyright" "yeled-tov"
 !define MUI_ICON "..\src\DesktopAssistant.App\app.ico"
 !define MUI_UNICON "..\src\DesktopAssistant.App\app.ico"
 !define MUI_ABORTWARNING
-!define MUI_WELCOMEPAGE_TITLE "ברוכים הבאים ל${APP_NAME}"
-!define MUI_WELCOMEPAGE_TEXT "עוזר AI למחשב — כמו Gemini בטלפון:$\r$\n$\r$\n• Ctrl+Alt+Space — לפתוח את העוזר מכל מקום$\r$\n• Ctrl+Alt+V — לדבר איתו$\r$\n• Ctrl+Alt+S או לחיצה ארוכה על משטח המגע — הקף וחפש / תרגום מסך$\r$\n$\r$\nהעוזר יכול לפתוח תוכנות, לכתוב ב-Word, ללחוץ ולהקליד בשבילך, ולענות על כל שאלה."
+!define MUI_WELCOMEPAGE_TITLE "התקנת ${APP_NAME}"
+!define MUI_WELCOMEPAGE_TEXT "מה זה?$\r$\nעוזרת AI למחשב — כמו Gemini בטלפון. אפשר לדבר איתה או לכתוב לה, והיא פותחת תוכנות, כותבת ב-Word, מקלידה מה שאומרים, מחפשת, מתרגמת את המסך ועונה על שאלות.$\r$\n$\r$\nכמה מקום?$\r$\nכ-200MB. לא צריך הרשאות מנהל ולא צריך להתקין שום דבר נוסף.$\r$\n$\r$\nאחרי ההתקנה:$\r$\n• Ctrl+Alt+Space — לפתוח את שיר$\r$\n• Ctrl+Alt+V — לדבר · Ctrl+Alt+D — הכתבה$\r$\n• Ctrl+Alt+S — הקף וחפש$\r$\n$\r$\nבפתיחה הראשונה מחברים מפתח AI (ל-Gemini יש חינמי), או מורידים מצב אופליין מתוך ההגדרות."
+!define MUI_FINISHPAGE_TITLE "${SHORT_NAME} מותקנת!"
+!define MUI_FINISHPAGE_TEXT "שיר רצה ברקע — הסמל שלה ליד השעון.$\r$\n$\r$\nלפתוח: Ctrl+Alt+Space$\r$\nלשאול מה היא יודעת: לחצו ? בחלון שלה.$\r$\nלשנות קיצורים, ספק AI או להוריד מצב אופליין: ⚙ הגדרות."
 !define MUI_FINISHPAGE_RUN "$INSTDIR\${APP_EXE}"
-!define MUI_FINISHPAGE_RUN_TEXT "הפעל את העוזר עכשיו"
+!define MUI_FINISHPAGE_RUN_TEXT "הפעל את שיר עכשיו"
 
 !insertmacro MUI_PAGE_WELCOME
 !insertmacro MUI_PAGE_COMPONENTS
@@ -60,14 +64,17 @@ Function .onInit
   Sleep 400
 FunctionEnd
 
-Section "העוזר האישי (חובה)" SecMain
+Section "${SHORT_NAME} — התוכנה עצמה (חובה)" SecMain
   SectionIn RO
   SetOutPath "$INSTDIR"
   File "${SOURCE_DIR}\${APP_EXE}"
   File "/oname=app.ico" "..\src\DesktopAssistant.App\app.ico"
   WriteUninstaller "$INSTDIR\Uninstall.exe"
 
-  CreateShortCut "$SMPROGRAMS\${APP_NAME}.lnk" "$INSTDIR\${APP_EXE}" "" "$INSTDIR\app.ico" 0
+  ; remove shortcuts left by older versions
+  Delete "$SMPROGRAMS\העוזר האישי.lnk"
+  Delete "$DESKTOP\העוזר האישי.lnk"
+  CreateShortCut "$SMPROGRAMS\${SHORT_NAME} – עוזרת AI.lnk" "$INSTDIR\${APP_EXE}" "" "$INSTDIR\app.ico" 0
 
   WriteRegStr HKCU "Software\${APP_ID}" "InstallDir" "$INSTDIR"
   WriteRegStr HKCU "${UNINSTALL_KEY}" "DisplayName" "${APP_NAME}"
@@ -81,7 +88,7 @@ Section "העוזר האישי (חובה)" SecMain
 SectionEnd
 
 Section "קיצור דרך בשולחן העבודה" SecDesktop
-  CreateShortCut "$DESKTOP\${APP_NAME}.lnk" "$INSTDIR\${APP_EXE}" "" "$INSTDIR\app.ico" 0
+  CreateShortCut "$DESKTOP\${SHORT_NAME} – עוזרת AI.lnk" "$INSTDIR\${APP_EXE}" "" "$INSTDIR\app.ico" 0
 SectionEnd
 
 Section "הפעלה אוטומטית עם Windows (מומלץ)" SecStartup
@@ -89,7 +96,7 @@ Section "הפעלה אוטומטית עם Windows (מומלץ)" SecStartup
 SectionEnd
 
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
-  !insertmacro MUI_DESCRIPTION_TEXT ${SecMain} "האפליקציה עצמה (כולל כל מה שצריך — לא נדרשת התקנה של .NET)."
+  !insertmacro MUI_DESCRIPTION_TEXT ${SecMain} "התוכנה (כ-200MB, כולל כל מה שצריך). מצב אופליין לא כלול — מורידים אותו מההגדרות רק אם רוצים."
   !insertmacro MUI_DESCRIPTION_TEXT ${SecDesktop} "אייקון על שולחן העבודה."
   !insertmacro MUI_DESCRIPTION_TEXT ${SecStartup} "העוזר יעלה ברקע עם הדלקת המחשב, כדי שהקיצורים והלחיצה הארוכה יעבדו תמיד."
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
@@ -101,8 +108,8 @@ Section "Uninstall"
   Delete "$INSTDIR\app.ico"
   Delete "$INSTDIR\Uninstall.exe"
   RMDir "$INSTDIR"
-  Delete "$SMPROGRAMS\${APP_NAME}.lnk"
-  Delete "$DESKTOP\${APP_NAME}.lnk"
+  Delete "$SMPROGRAMS\${SHORT_NAME} – עוזרת AI.lnk"
+  Delete "$DESKTOP\${SHORT_NAME} – עוזרת AI.lnk"
   DeleteRegValue HKCU "${RUN_KEY}" "${APP_ID}"
   DeleteRegKey HKCU "${UNINSTALL_KEY}"
   DeleteRegKey HKCU "Software\${APP_ID}"

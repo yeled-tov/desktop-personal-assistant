@@ -51,11 +51,19 @@ public interface IChatModel
 }
 
 /// <summary>An error whose message is already written for the user (Hebrew).</summary>
-public sealed class AiException(string message) : Exception(message);
+public enum AiErrorKind { Other, Network, Quota, Auth, BadRequest }
+
+public sealed class AiException(string message, AiErrorKind kind = AiErrorKind.Other, int statusCode = 0) : Exception(message)
+{
+    public AiErrorKind Kind { get; } = kind;
+    public int StatusCode { get; } = statusCode;
+    /// <summary>Worth retrying on the offline brain (no internet, quota exhausted, provider down).</summary>
+    public bool CanFallBackOffline => Kind is AiErrorKind.Network or AiErrorKind.Quota || StatusCode >= 500;
+}
 
 public abstract class ChatModelBase(ProviderConfig config) : IChatModel
 {
-    protected static readonly HttpClient Http = new() { Timeout = TimeSpan.FromSeconds(120) };
+    protected static readonly HttpClient Http = new() { Timeout = TimeSpan.FromMinutes(5) }; // local CPU models can take a while on the first request
     public ProviderConfig Config { get; } = config;
 
     public abstract Task<ModelReply> CompleteAsync(string system, IReadOnlyList<ChatMessage> messages, IReadOnlyList<ToolSpec> tools, ModelOptions options, CancellationToken cancellationToken);
@@ -78,12 +86,16 @@ public abstract class ChatModelBase(ProviderConfig config) : IChatModel
     {
         HttpResponseMessage response;
         try { response = await Http.SendAsync(request, HttpCompletionOption.ResponseContentRead, cancellationToken); }
-        catch (HttpRequestException ex) { throw new AiException($"אין חיבור ל-{Config.DisplayName}. בדוק את האינטרנט ({ex.Message})."); }
-        catch (TaskCanceledException) when (!cancellationToken.IsCancellationRequested) { throw new AiException($"{Config.DisplayName} לא ענה בזמן. נסה שוב."); }
+        catch (HttpRequestException ex) { throw new AiException($"אין חיבור ל-{Config.DisplayName}. בדוק את האינטרנט ({ex.Message}).", AiErrorKind.Network); }
+        catch (TaskCanceledException) when (!cancellationToken.IsCancellationRequested) { throw new AiException($"{Config.DisplayName} לא ענה בזמן. נסה שוב.", AiErrorKind.Network); }
         using (response)
         {
             var body = await response.Content.ReadAsStringAsync(cancellationToken);
-            if (!response.IsSuccessStatusCode) throw new AiException(DescribeError(response.StatusCode, body));
+            if (!response.IsSuccessStatusCode)
+            {
+                var kind = (int)response.StatusCode switch { 429 or 402 => AiErrorKind.Quota, 401 or 403 => AiErrorKind.Auth, 400 or 404 or 422 => AiErrorKind.BadRequest, _ => AiErrorKind.Other };
+                throw new AiException(DescribeError(response.StatusCode, body), kind, (int)response.StatusCode);
+            }
             try { return JsonNode.Parse(body) ?? new JsonObject(); }
             catch (JsonException) { throw new AiException($"{Config.DisplayName} החזיר תשובה לא תקינה."); }
         }

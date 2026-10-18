@@ -8,13 +8,12 @@ namespace DesktopAssistant.Agent;
 public sealed record AgentResult(string Text, int Steps, IReadOnlyList<string> Actions);
 
 /// <summary>The think → act → observe loop.</summary>
-public sealed class AgentRunner(IChatModel model, AgentContext context)
+public sealed class AgentRunner(IChatModel model, AgentContext context, IReadOnlyList<AgentTool> tools)
 {
     private static readonly TimeSpan ToolTimeout = TimeSpan.FromSeconds(90);
 
     public async Task<AgentResult> RunAsync(IReadOnlyList<ChatMessage> history, ChatMessage userMessage, CancellationToken cancellationToken)
     {
-        var tools = DesktopTools.All;
         var specs = tools.Select(t => t.Spec).ToList();
         var messages = new List<ChatMessage>(history) { userMessage };
         var actions = new List<string>();
@@ -125,8 +124,12 @@ public sealed class AgentRunner(IChatModel model, AgentContext context)
             - Use 'remember' when the user tells you something lasting about themselves (names, numbers, preferences) or asks you to remember.
             - Questions that need no action (facts, advice, writing, math, translation): just answer from your knowledge.
 
+            About yourself (use this when the user asks what you can do or how to use you — explain warmly and concretely, in their language)
+            {context.Help()}
+
             Answer style
             - Reply in the user's language (Hebrew by default), short and natural — 1-3 sentences for completed actions. Plain text; at most simple "-" bullets. No tables, no headers.
+            - In Hebrew, speak about yourself in the feminine form (את/אני עושה → "פתחתי", "אני יכולה").
             """;
     }
 

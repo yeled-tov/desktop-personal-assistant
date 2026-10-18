@@ -11,18 +11,19 @@ public sealed class TrayIcon : IDisposable
 
     public TrayIcon(AppHost host)
     {
-        _icon = new Forms.NotifyIcon { Text = "העוזר האישי", Icon = LoadIcon(), Visible = false };
+        _icon = new Forms.NotifyIcon { Text = $"{host.Controller.Settings.AssistantName} – עוזרת AI", Icon = LoadIcon(), Visible = false };
         var menu = new Forms.ContextMenuStrip { RightToLeft = Forms.RightToLeft.Yes, ShowImageMargin = false };
         void Item(string text, Action action) => menu.Items.Add(text, null, (_, _) => AppLog.Guard("tray menu", action));
-        Item("✦ פתח את העוזר", () => host.Main.ShowPanel());
-        Item("🎙 דבר עם העוזר", () => _ = host.Main.ToggleVoiceAsync());
+        Item($"✦ פתח את {host.Controller.Settings.AssistantName}", () => host.Main.ShowPanel());
+        Item("🎙 דיבור", () => _ = host.Main.ToggleVoiceAsync());
+        Item("✍ הכתבה", () => _ = host.Main.DictateAsync());
         var wake = new Forms.ToolStripMenuItem("👂 האזנה למילת ההפעלה") { CheckOnClick = true };
         menu.Opening += (_, _) => { wake.Text = $"👂 האזנה ל\"{host.Controller.Settings.WakePhrase}\""; wake.Checked = host.Controller.Settings.WakeWordEnabled; };
         wake.Click += (_, _) => AppLog.Guard("tray wake toggle", () =>
         {
             host.Controller.Settings.WakeWordEnabled = wake.Checked;
             host.OnSettingsChanged();
-            if (wake.Checked && !host.WakeWordActive) UI.Toast.Show("מילת הפעלה", "כדי להאזין צריך ספק שיודע לתמלל דיבור: Gemini, OpenAI או Groq (הגדרות ← בינה מלאכותית).");
+            if (wake.Checked && !host.WakeWordActive) UI.Toast.Show("מילת הפעלה", "מילת ההפעלה עובדת עם זיהוי הדיבור האופליין (בלי אינטרנט ובלי מכסה). הורידו אותו: הגדרות ← אופליין.");
         });
         menu.Items.Add(wake);
         Item("◎ הקף וחפש", () => _ = host.StartCircleSearchAsync());

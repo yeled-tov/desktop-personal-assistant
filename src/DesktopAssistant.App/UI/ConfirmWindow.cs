@@ -10,7 +10,8 @@ public sealed class ConfirmWindow : Window
 {
     private ConfirmWindow(string title, string details)
     {
-        WindowStyle = WindowStyle.None; AllowsTransparency = true; Background = Brushes.Transparent; Topmost = true; ShowInTaskbar = true;
+        Background = Theme.Res("Surface"); Topmost = true; ShowInTaskbar = true;
+        WindowStyling.MakeBorderless(this);
         SizeToContent = SizeToContent.WidthAndHeight; ResizeMode = ResizeMode.NoResize; WindowStartupLocation = WindowStartupLocation.CenterScreen;
         FlowDirection = FlowDirection.RightToLeft; FontFamily = Theme.Font; Title = title;
 
@@ -21,8 +22,7 @@ public sealed class ConfirmWindow : Window
 
         Content = new Border
         {
-            Margin = new Thickness(16), Padding = new Thickness(22, 18, 22, 16), CornerRadius = new CornerRadius(20), MaxWidth = 520,
-            Background = Theme.Res("Surface"), BorderBrush = Theme.Res("GeminiGradient"), BorderThickness = new Thickness(1.2), Effect = Theme.Shadow(),
+            Padding = new Thickness(22, 18, 22, 16), MaxWidth = 520, BorderBrush = Theme.Res("GeminiGradient"), BorderThickness = new Thickness(1),
             Child = new StackPanel
             {
                 Children =

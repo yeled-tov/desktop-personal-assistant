@@ -16,6 +16,10 @@ public static class DesktopTools
 
     public static IReadOnlyList<AgentTool> All { get; } = Build();
 
+    /// <summary>A smaller toolset for the offline brain: small local models choose better from fewer tools, and a shorter prompt is much faster on a CPU.</summary>
+    public static IReadOnlyList<AgentTool> Essential { get; } = All.Where(t => t.Name is "open_app" or "web_search" or "open_url" or "type_text" or "press_keys" or "window_action"
+        or "list_windows" or "take_screenshot" or "click_at" or "read_window_text" or "word_write" or "whatsapp_message" or "set_timer" or "remember" or "media_control" or "open_path").ToList();
+
     private static List<AgentTool> Build() =>
     [
         new()

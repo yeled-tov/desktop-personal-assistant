@@ -25,6 +25,9 @@ public sealed class AgentContext
     /// <summary>Hides/shows the floating status pill around screenshots.</summary>
     public required Func<bool, Task> SetOverlayVisible { get; init; }
     public required Func<Task> OpenScreenTranslation { get; init; }
+    public Func<Task> OpenCircleSearch { get; init; } = () => Task.CompletedTask;
+    /// <summary>The capability/how-to text (answered locally, no AI).</summary>
+    public Func<string> Help { get; init; } = () => "";
     public required Action<string, string> Notify { get; init; }
     public required Func<Func<object?>, Task<object?>> RunOnUiThread { get; init; }
     public UiAutomationHelper Ui { get; } = new();

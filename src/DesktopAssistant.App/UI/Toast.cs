@@ -21,13 +21,12 @@ public static class Toast
             var area = SystemParameters.WorkArea;
             var window = new Window
             {
-                WindowStyle = WindowStyle.None, AllowsTransparency = true, Background = Brushes.Transparent, Topmost = true, ShowInTaskbar = false,
-                ShowActivated = false, SizeToContent = SizeToContent.WidthAndHeight, ResizeMode = ResizeMode.NoResize, FlowDirection = FlowDirection.RightToLeft
+                Background = Theme.Res("Surface"), Topmost = true, ShowInTaskbar = false,
+                SizeToContent = SizeToContent.WidthAndHeight, ResizeMode = ResizeMode.NoResize, FlowDirection = FlowDirection.RightToLeft
             };
             var content = new Border
             {
-                Background = Theme.Res("Surface"), CornerRadius = new CornerRadius(16), Padding = new Thickness(18, 14, 18, 14), Margin = new Thickness(16),
-                BorderBrush = Theme.Res("GeminiGradient"), BorderThickness = new Thickness(1.2), Effect = Theme.Shadow(), MaxWidth = 380,
+                Padding = new Thickness(18, 14, 18, 14), BorderBrush = Theme.Res("GeminiGradient"), BorderThickness = new Thickness(1), MaxWidth = 380,
                 Child = new StackPanel
                 {
                     Children =
@@ -39,17 +38,12 @@ public static class Toast
             };
             window.Content = content;
             window.MouseLeftButtonUp += (_, _) => window.Close();
-            window.SourceInitialized += (_, _) =>
-            {
-                var hwnd = new WindowInteropHelper(window).Handle;
-                var style = Native.GetWindowLongPtr(hwnd, Native.GWL_EXSTYLE).ToInt64();
-                Native.SetWindowLongPtr(hwnd, Native.GWL_EXSTYLE, new nint(style | Native.WS_EX_NOACTIVATE | Native.WS_EX_TOOLWINDOW));
-            };
+            WindowStyling.MakeBorderless(window);
+            WindowStyling.MakeNoActivate(window);
             window.Loaded += (_, _) =>
             {
-                window.Left = area.Right - window.ActualWidth - 8;
-                window.Top = area.Bottom - window.ActualHeight - 8;
-                window.BeginAnimation(UIElement.OpacityProperty, new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(180)));
+                window.Left = area.Right - window.ActualWidth - 16;
+                window.Top = area.Bottom - window.ActualHeight - 16;
             };
             window.Show();
             var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(seconds) };

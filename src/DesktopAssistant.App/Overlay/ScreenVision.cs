@@ -16,6 +16,12 @@ public static class ScreenVision
 {
     public static async Task<IReadOnlyList<TranslatedRegion>> TranslateAsync(IChatModel model, BitmapSource image, string targetLanguage, CancellationToken cancellationToken)
     {
+        // Offline (and as a cheaper path): Windows reads the text locally, the model only translates text.
+        if (model.Config.Id == "offline")
+        {
+            var viaOcr = await TranslateViaOcrAsync(model, image, targetLanguage, cancellationToken);
+            if (viaOcr is not null) return viaOcr;
+        }
         var prompt = $$"""
             Find every piece of readable text in this screenshot and translate it to {{targetLanguage}}.
             Return JSON only: {"regions":[{"o":"original text","t":"translation","b":[left,top,right,bottom]}]}
@@ -67,6 +73,68 @@ public static class ScreenVision
         var reply = await model.CompleteAsync("Answer about the image the user circled on their screen. Reply in the user's language, concise, plain text.",
             [ChatMessage.User(question, new ImagePart(ScreenCapture.EncodeForModel(selection, 1600)))], [], new ModelOptions(MaxOutputTokens: 4000), cancellationToken);
         return reply.Text;
+    }
+
+    /// <summary>
+    /// Windows OCR finds the lines and their positions on the PC; the model translates only the text.
+    /// Returns null when Windows has no OCR language installed (then the image path is used).
+    /// </summary>
+    public static async Task<IReadOnlyList<TranslatedRegion>?> TranslateViaOcrAsync(IChatModel model, BitmapSource image, string targetLanguage, CancellationToken cancellationToken)
+    {
+        var lines = await OcrLinesAsync(image);
+        if (lines is null) return null;
+        if (lines.Count == 0) return [];
+        var results = new List<TranslatedRegion>();
+        foreach (var chunk in lines.Chunk(40))
+        {
+            var input = new System.Text.Json.Nodes.JsonArray(chunk.Select(l => (System.Text.Json.Nodes.JsonNode?)l.Text).ToArray());
+            var prompt = $$"""
+                Translate each string in this JSON array to {{targetLanguage}}. Keep the same order and count. UI labels stay short.
+                If a string is already in {{targetLanguage}} or is only numbers/symbols, copy it unchanged.
+                Return JSON only: {"t":["...", "..."]}
+                {{input.ToJsonString()}}
+                """;
+            var reply = await model.CompleteAsync("", [ChatMessage.User(prompt)], [], new ModelOptions(JsonOutput: true, MaxOutputTokens: 4000), cancellationToken);
+            var translated = ParseJson(reply.Text)?["t"] as JsonArray;
+            for (var i = 0; i < chunk.Length; i++)
+            {
+                var line = chunk[i];
+                var text = translated is not null && i < translated.Count ? translated[i]?.ToString() ?? "" : "";
+                if (text.Length == 0 || text == line.Text) continue;
+                results.Add(new TranslatedRegion(line.Text, text, line.Left, line.Top, line.Right, line.Bottom));
+            }
+        }
+        return results;
+    }
+
+    private sealed record OcrLine(string Text, double Left, double Top, double Right, double Bottom);
+
+    private static async Task<List<OcrLine>?> OcrLinesAsync(BitmapSource image)
+    {
+        try
+        {
+            var engine = Windows.Media.Ocr.OcrEngine.TryCreateFromUserProfileLanguages()
+                         ?? Windows.Media.Ocr.OcrEngine.TryCreateFromLanguage(new Windows.Globalization.Language("en-US"));
+            if (engine is null) return null;
+            var png = ScreenCapture.EncodePng(image);
+            using var stream = new Windows.Storage.Streams.InMemoryRandomAccessStream();
+            await stream.WriteAsync(png.AsBuffer());
+            stream.Seek(0);
+            var decoder = await Windows.Graphics.Imaging.BitmapDecoder.CreateAsync(stream);
+            using var bitmap = await decoder.GetSoftwareBitmapAsync(Windows.Graphics.Imaging.BitmapPixelFormat.Bgra8, Windows.Graphics.Imaging.BitmapAlphaMode.Premultiplied);
+            var result = await engine.RecognizeAsync(bitmap);
+            double w = image.PixelWidth, h = image.PixelHeight;
+            var lines = new List<OcrLine>();
+            foreach (var line in result.Lines)
+            {
+                if (line.Words.Count == 0 || string.IsNullOrWhiteSpace(line.Text)) continue;
+                var l = line.Words.Min(x => x.BoundingRect.Left); var t = line.Words.Min(x => x.BoundingRect.Top);
+                var r = line.Words.Max(x => x.BoundingRect.Right); var b = line.Words.Max(x => x.BoundingRect.Bottom);
+                lines.Add(new OcrLine(line.Text, l / w, t / h, r / w, b / h));
+            }
+            return lines;
+        }
+        catch (Exception ex) { AppLog.Warn("OCR lines failed: " + ex.Message); return null; }
     }
 
     /// <summary>Local Windows OCR (no internet). Returns null when no OCR language is installed.</summary>

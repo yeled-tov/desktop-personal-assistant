@@ -6,6 +6,20 @@ namespace DesktopAssistant.Settings;
 
 public enum ProviderKind { Gemini, OpenAICompatible, Anthropic }
 
+/// <summary>Where the "brain" runs.</summary>
+public enum AiMode
+{
+    /// <summary>The selected API provider (Gemini, OpenAI…).</summary>
+    Cloud,
+    /// <summary>Everything on this computer (needs the offline pack).</summary>
+    Offline,
+    /// <summary>Cloud, and automatically the offline brain when there is no internet or the quota ran out.</summary>
+    Auto
+}
+
+/// <summary>Which speech-to-text engine to use.</summary>
+public enum SpeechEngine { Auto, Offline, Cloud }
+
 public sealed class ProviderConfig
 {
     public string Id { get; set; } = "";
@@ -22,13 +36,21 @@ public sealed class ProviderConfig
 
 public sealed class AppSettings
 {
-    public int SchemaVersion { get; set; } = 2;
+    public int SchemaVersion { get; set; } = 3;
     public string UiLanguage { get; set; } = "he";
     public string ActiveProviderId { get; set; } = "gemini";
+    public AiMode AiMode { get; set; } = AiMode.Auto;
+    public SpeechEngine SpeechEngine { get; set; } = SpeechEngine.Auto;
+    /// <summary>Simple commands (open, search, time, volume, timers…) run instantly on the PC without using the AI quota.</summary>
+    public bool QuickCommands { get; set; } = true;
+    /// <summary>Selected offline packs (ids from OfflineCatalog).</summary>
+    public string OfflineSpeechModel { get; set; } = "";
+    public string OfflineBrainModel { get; set; } = "";
     public List<ProviderConfig> Providers { get; set; } = ProviderPresets.All.Select(p => p.Clone()).ToList();
 
     public string AssistantHotkey { get; set; } = "Ctrl+Alt+Space";
     public string VoiceHotkey { get; set; } = "Ctrl+Alt+V";
+    public string DictationHotkey { get; set; } = "Ctrl+Alt+D";
     public string CircleSearchHotkey { get; set; } = "Ctrl+Alt+S";
     public string TranslateHotkey { get; set; } = "Ctrl+Alt+T";
     /// <summary>The Copilot key on new keyboards sends Win+Shift+F23.</summary>
@@ -42,7 +64,10 @@ public sealed class AppSettings
     public string AssistantName { get; set; } = "שיר";
     /// <summary>Say this and the assistant opens by itself. Anything said right after it is run as a command.</summary>
     public string WakePhrase { get; set; } = "היי שיר";
-    public bool WakeWordEnabled { get; set; } = true;
+    /// <summary>Off by default. Works only with the offline speech pack (nothing is sent to the internet).</summary>
+    public bool WakeWordEnabled { get; set; }
+    /// <summary>Pause listening for the wake word while the laptop runs on battery.</summary>
+    public bool WakeOnlyWhenCharging { get; set; } = true;
     public bool AutoSendVoice { get; set; } = true;
     public bool ConfirmSensitiveActions { get; set; } = true;
     public int MaxAgentSteps { get; set; } = 30;
@@ -57,6 +82,8 @@ public sealed class AppSettings
     /// <summary>Adds presets that were introduced after the user's settings file was written.</summary>
     public void Normalize()
     {
+        // v2.0.13 had the wake word on by default and sent speech to the cloud provider — turn it off once.
+        if (SchemaVersion < 3) { WakeWordEnabled = false; SchemaVersion = 3; }
         Providers ??= [];
         foreach (var preset in ProviderPresets.All)
             if (Providers.All(p => p.Id != preset.Id)) Providers.Add(preset.Clone());

@@ -17,7 +17,8 @@ New-Item -ItemType Directory -Force -Path $publishDir, $installerDir | Out-Null
 
 Write-Host "== Publishing v$Version ==" -ForegroundColor Cyan
 dotnet publish $app -c Release -r win-x64 --self-contained true `
-  -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true `
+  -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=false `
+  -p:PublishReadyToRun=true `
   -p:DebugType=None -p:DebugSymbols=false -p:Version=$Version -o $publishDir
 if ($LASTEXITCODE -ne 0) { throw 'הבנייה נכשלה.' }
 $exe = Join-Path $publishDir 'DesktopAssistant.exe'
@@ -31,6 +32,7 @@ if (-not $SkipSmokeTest) {
   if (-not $p.WaitForExit(150000)) { Stop-Process -Id $p.Id -Force; throw 'Smoke test: the app hung.' }
   $result = if (Test-Path $marker) { Get-Content $marker -Raw } else { '(no result file)' }
   Write-Host $result
+  if ($env:GITHUB_ACTIONS) { Write-Host ("::notice title=Smoke test::" + ($result -replace "`r","" -replace "`n","%0A")) }
   $log = Get-ChildItem (Join-Path $env:LOCALAPPDATA 'DesktopAssistant\logs') -Filter 'app-*.log' -ErrorAction SilentlyContinue | Sort-Object LastWriteTime | Select-Object -Last 1
   if ($log) { Write-Host '--- app log ---'; Get-Content $log.FullName -Tail 60 }
   if ($p.ExitCode -ne 0 -or -not $result.StartsWith('SMOKE OK')) { throw "Smoke test failed (exit code $($p.ExitCode))." }

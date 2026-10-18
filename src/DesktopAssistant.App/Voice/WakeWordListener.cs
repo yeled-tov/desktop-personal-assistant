@@ -3,25 +3,27 @@ using DesktopAssistant.Core;
 namespace DesktopAssistant.Voice;
 
 /// <summary>
-/// "היי שיר" — always-on listening.
+/// "היי שיר" — listening for the wake phrase, 100% on this computer.
 ///
-/// The microphone is analysed locally all the time, and nothing leaves the computer while it is quiet.
-/// Only when someone speaks a short utterance (up to ~6 s) is that clip sent to the speech-to-text provider,
-/// and the assistant opens if the transcript starts with the wake phrase. Long conversations are ignored,
-/// the clips are never stored, and there is a hard limit on how many clips per minute can be checked.
+/// A wake word can only be heard with the microphone open — that is how every voice assistant works.
+/// To keep it light: the audio is checked locally for "is someone speaking" (a few hundred calculations
+/// per second, practically free), and only short utterances (up to ~6 s) go to the LOCAL speech engine to
+/// check for the phrase. Nothing is ever sent to the internet or uses an API quota. It pauses by itself on
+/// battery power (configurable), and stops completely when turned off.
 /// </summary>
 public sealed class WakeWordListener : IDisposable
 {
-    private const int FrameMs = 50;
-    private const int PreRollFrames = 6;          // keep 300 ms before speech starts
-    private const int StartFrames = 3;            // 150 ms of voice to start a segment
-    private const int EndSilenceFrames = 14;      // 700 ms of quiet ends it
-    private const int MinSpeechFrames = 6;        // ignore clicks/coughs shorter than 300 ms
-    private const int MaxSegmentFrames = 120;     // 6 s — longer speech is conversation, not a wake word
-    private const int MaxChecksPerMinute = 15;
+    // Frames are 100 ms.
+    private const int PreRollFrames = 3;          // keep 300 ms before speech starts
+    private const int StartFrames = 2;            // 200 ms of voice to start a segment
+    private const int EndSilenceFrames = 7;       // 700 ms of quiet ends it
+    private const int MinSpeechFrames = 3;        // ignore clicks/coughs shorter than 300 ms
+    private const int MaxSegmentFrames = 60;      // 6 s — longer speech is conversation, not a wake word
+    private const int MaxChecksPerMinute = 20;    // CPU guard in a noisy room
 
     private readonly Func<byte[], string, CancellationToken, Task<string>> _transcribe;
     private readonly Func<bool> _isPaused;
+    private readonly Func<bool> _shouldListen;
     private readonly Action<string> _onWake;
     private readonly Queue<DateTime> _recentChecks = new();
     private CancellationTokenSource? _cts;
@@ -36,10 +38,12 @@ public sealed class WakeWordListener : IDisposable
     /// <param name="transcribe">(wav, hint, token) → text</param>
     /// <param name="isPaused">true while the assistant is already listening/speaking/busy</param>
     /// <param name="onWake">called with the command said after the phrase (may be empty)</param>
-    public WakeWordListener(Func<byte[], string, CancellationToken, Task<string>> transcribe, Func<bool> isPaused, Action<string> onWake)
+    /// <param name="shouldListen">false = close the microphone completely (e.g. on battery); re-checked every few seconds</param>
+    public WakeWordListener(Func<byte[], string, CancellationToken, Task<string>> transcribe, Func<bool> isPaused, Func<bool> shouldListen, Action<string> onWake)
     {
         _transcribe = transcribe;
         _isPaused = isPaused;
+        _shouldListen = shouldListen;
         _onWake = onWake;
     }
 
@@ -68,9 +72,16 @@ public sealed class WakeWordListener : IDisposable
         {
             try
             {
+                if (!_shouldListen())
+                {
+                    Status = "מושהה (סוללה)";
+                    await Task.Delay(TimeSpan.FromSeconds(15), token);
+                    continue;
+                }
                 Status = "מאזין";
-                AppLog.Info($"Wake word listener started (\"{Phrase}\")");
+                AppLog.Info($"Wake word listener: microphone open (\"{Phrase}\")");
                 await ListenAsync(token);
+                AppLog.Info("Wake word listener: microphone closed");
             }
             catch (OperationCanceledException) when (token.IsCancellationRequested) { break; }
             catch (Exception ex)
@@ -92,9 +103,15 @@ public sealed class WakeWordListener : IDisposable
         int loudRun = 0, quietRun = 0, speechFrames = 0, segmentFrames = 0;
         var noiseFloor = 0.01;
         var tooLong = false;
+        var lastPolicyCheck = DateTime.UtcNow;
 
         return AudioRecorder.CaptureAsync((buffer, count, level) =>
         {
+            if (DateTime.UtcNow - lastPolicyCheck > TimeSpan.FromSeconds(10))
+            {
+                lastPolicyCheck = DateTime.UtcNow;
+                if (!_shouldListen()) return false; // close the mic (e.g. unplugged from power)
+            }
             var frame = buffer.AsSpan(0, count).ToArray();
             if (_isPaused() || DateTime.UtcNow < _cooldownUntil)
             {
@@ -103,7 +120,7 @@ public sealed class WakeWordListener : IDisposable
             }
 
             // Slowly track background noise so a fan or AC doesn't count as speech.
-            if (!inSpeech) noiseFloor = level < noiseFloor ? noiseFloor * 0.9 + level * 0.1 : noiseFloor * 0.995 + level * 0.005;
+            if (!inSpeech) noiseFloor = level < noiseFloor ? noiseFloor * 0.9 + level * 0.1 : noiseFloor * 0.99 + level * 0.01;
             var threshold = Math.Max(0.012, noiseFloor * 3.0);
             var loud = level > threshold;
 

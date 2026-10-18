@@ -12,7 +12,11 @@
     <AssemblyName>DesktopAssistant</AssemblyName>
     <RootNamespace>DesktopAssistant</RootNamespace>
     <Version>2.0.0</Version>
-    <Product>עוזר אישי למחשב</Product>
+    <Product>שיר – עוזרת AI למחשב</Product>
+    <AssemblyTitle>שיר – עוזרת AI למחשב</AssemblyTitle>
+    <Description>עוזרת AI ל-Windows: דיבור, הכתבה, הפעלת המחשב, הקף וחפש ותרגום מסך</Description>
+    <Company>yeled-tov</Company>
+    <Copyright>yeled-tov</Copyright>
     <ApplicationIcon>app.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <NuGetAudit>false</NuGetAudit>

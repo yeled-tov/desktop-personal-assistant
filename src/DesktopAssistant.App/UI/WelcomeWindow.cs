@@ -43,6 +43,8 @@ public sealed class WelcomeWindow : Window
 
         var connect = new Button { Content = "חבר והתחל ✦", Style = (Style)Application.Current.Resources["AccentButton"], MinWidth = 140 };
         var skip = new Button { Content = "אחר כך", MinWidth = 90 };
+        var offline = new Button { Content = "🔌 מצב אופליין…", MinWidth = 110 };
+        offline.Click += (_, _) => { Close(); _host.OpenSettings(); };
         connect.Click += async (_, _) => await ConnectAsync(connect);
         skip.Click += (_, _) => Close();
 
@@ -54,14 +56,14 @@ public sealed class WelcomeWindow : Window
             {
                 new TextBlock { Text = $"✦ שלום! אני {s.AssistantName}, העוזרת האישית שלך", FontSize = 22, FontWeight = FontWeights.SemiBold, Foreground = new SolidColorBrush(Color.FromRgb(32, 33, 36)) },
                 new TextBlock { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 10, 0, 14), Foreground = Brushes.DimGray, Text =
-                    $"• \"{s.WakePhrase}\" — לקרוא לי בקול (אפשר גם: \"{s.WakePhrase}, פתח וורד\")\n• {s.AssistantHotkey} — לפתוח אותי מכל מקום (או ללחוץ על הסמל ליד השעון)\n• {s.VoiceHotkey} — לדבר איתי\n• {s.CircleSearchHotkey} או לחיצה ארוכה על משטח המגע — להקפיא את המסך ולהקיף משהו לחיפוש/תרגום\n\nכדי שאהיה חכם צריך לחבר מודל AI. בחר ספק והדבק מפתח API:" },
+                    $"• {s.AssistantHotkey} — לפתוח אותי מכל מקום (או הסמל ליד השעון)\n• {s.VoiceHotkey} — לדבר איתי · {s.DictationHotkey} — הכתבה: אני מקלידה מה שאומרים\n• {s.CircleSearchHotkey} או לחיצה ארוכה על משטח המגע — הקף וחפש / תרגום מסך\n\nכדי שאהיה חכמה צריך \"מוח\". שתי דרכים:\n1) הכי פשוט: מפתח API (ל-Gemini יש מסלול חינמי — דקה להשיג).\n2) בלי אינטרנט בכלל: להוריד מצב אופליין (כמה GB) — ⚙ הגדרות ← אופליין.\n\nפקודות פשוטות (פתיחת תוכנות, חיפוש, טיימרים, ווליום) עובדות גם בלי כלום." },
                 new TextBlock { Text = "ספק", FontWeight = FontWeights.SemiBold },
                 _provider,
                 new TextBlock { Text = "מפתח API", FontWeight = FontWeights.SemiBold },
                 _key,
                 link,
                 _status,
-                new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 16, 0, 0), Children = { connect, skip } }
+                new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 16, 0, 0), Children = { connect, offline, skip } }
             }
         };
     }

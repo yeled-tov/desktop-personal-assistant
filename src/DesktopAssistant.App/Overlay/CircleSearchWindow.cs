@@ -59,8 +59,8 @@ public sealed class CircleSearchWindow : Window
         _frozen.Source = shot.Image;
         _stroke = new Polyline
         {
-            Stroke = Brushes.White, StrokeThickness = 6, StrokeLineJoin = PenLineJoin.Round, StrokeStartLineCap = PenLineCap.Round, StrokeEndLineCap = PenLineCap.Round,
-            Effect = new DropShadowEffect { Color = Color.FromRgb(66, 133, 244), BlurRadius = 18, ShadowDepth = 0, Opacity = 0.9 }, IsHitTestVisible = false
+            Stroke = new SolidColorBrush(Color.FromRgb(138, 180, 248)), StrokeThickness = 6, StrokeLineJoin = PenLineJoin.Round, StrokeStartLineCap = PenLineCap.Round, StrokeEndLineCap = PenLineCap.Round,
+            IsHitTestVisible = false
         };
         _drawLayer.Children.Add(_selectionFrame);
         _drawLayer.Children.Add(_stroke);
@@ -421,8 +421,7 @@ public sealed class CircleSearchWindow : Window
         rotate.BeginAnimation(RotateTransform.AngleProperty, new DoubleAnimation(0, 360, TimeSpan.FromSeconds(4)) { RepeatBehavior = RepeatBehavior.Forever });
         return new Border
         {
-            BorderBrush = brush, BorderThickness = new Thickness(5), IsHitTestVisible = false,
-            Effect = new BlurEffect { Radius = 8 }
+            BorderBrush = brush, BorderThickness = new Thickness(4), IsHitTestVisible = false
         };
     }
 

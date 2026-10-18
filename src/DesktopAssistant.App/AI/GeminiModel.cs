@@ -8,6 +8,8 @@ public sealed class GeminiModel(ProviderConfig config) : ChatModelBase(config)
     public const string Tag = "gemini";
     private static readonly HashSet<string> SchemaKeys = ["type", "description", "enum", "properties", "items", "required", "nullable", "format", "minimum", "maximum"];
 
+    private static bool _thinkingLevelSupported = true;
+
     public override bool CanTranscribe => true;
 
     public override async Task<ModelReply> CompleteAsync(string system, IReadOnlyList<ChatMessage> messages, IReadOnlyList<ToolSpec> tools, ModelOptions options, CancellationToken cancellationToken)
@@ -27,9 +29,20 @@ public sealed class GeminiModel(ProviderConfig config) : ChatModelBase(config)
         }
         var generation = new JsonObject { ["maxOutputTokens"] = options.MaxOutputTokens };
         if (options.JsonOutput) generation["responseMimeType"] = "application/json";
+        var model = Model(options);
+        // Gemini 3+ "thinks" at medium by default; low is much faster for an assistant that mostly acts.
+        var lowThinking = _thinkingLevelSupported && System.Text.RegularExpressions.Regex.IsMatch(model, @"^gemini-([3-9]|\d\d)");
+        if (lowThinking) generation["thinkingConfig"] = new JsonObject { ["thinkingLevel"] = "low" };
         body["generationConfig"] = generation;
 
-        var response = await PostAsync(Model(options), body, cancellationToken);
+        JsonNode response;
+        try { response = await PostAsync(model, body, cancellationToken); }
+        catch (AiException ex) when (lowThinking && ex.Kind == AiErrorKind.BadRequest && ex.Message.Contains("thinking", StringComparison.OrdinalIgnoreCase))
+        {
+            _thinkingLevelSupported = false; // this model/API version doesn't take it — continue without
+            generation.Remove("thinkingConfig");
+            response = await PostAsync(model, body, cancellationToken);
+        }
         var candidates = response["candidates"] as JsonArray;
         if (candidates is null || candidates.Count == 0)
         {

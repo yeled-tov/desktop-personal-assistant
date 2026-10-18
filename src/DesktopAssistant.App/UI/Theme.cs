@@ -41,7 +41,8 @@ public static class Theme
         FontSize = 13.5
     };
 
-    public static Effect Shadow(double blur = 28, double opacity = 0.35) => new DropShadowEffect { BlurRadius = blur, ShadowDepth = 3, Opacity = opacity, Color = Colors.Black };
+    /// <summary>Kept cheap on purpose: a small shadow only (large blurred shadows made the UI slow).</summary>
+    public static Effect Shadow(double blur = 28, double opacity = 0.35) => new DropShadowEffect { BlurRadius = Math.Min(blur, 12), ShadowDepth = 2, Opacity = opacity, Color = Colors.Black, RenderingBias = RenderingBias.Performance };
 
     public static bool ContainsHebrew(string text) => text.Any(c => c >= 'א' && c <= 'ת');
 }

@@ -26,7 +26,8 @@ public partial class App : Application
         AppDomain.CurrentDomain.UnhandledException += (_, a) => AppLog.Error("Unhandled exception (fatal)", a.ExceptionObject as Exception);
         TaskScheduler.UnobservedTaskException += (_, a) => { AppLog.Error("Unobserved task exception", a.Exception); a.SetObserved(); };
 
-        var smoke = e.Args.Contains("--smoke-test", StringComparer.OrdinalIgnoreCase);
+        var offlineTest = e.Args.Contains("--smoke-offline", StringComparer.OrdinalIgnoreCase);
+        var smoke = offlineTest || e.Args.Contains("--smoke-test", StringComparer.OrdinalIgnoreCase);
         var minimized = e.Args.Contains("--minimized", StringComparer.OrdinalIgnoreCase);
 
         if (!smoke)
@@ -44,6 +45,7 @@ public partial class App : Application
         try
         {
             _host = new AppHost();
+            if (offlineTest) { _ = OfflineSmokeTest.RunAsync(_host); return; }
             if (smoke) { _ = RunSmokeTestAsync(_host, e.Args); return; }
             _instance!.ListenForActivation(() => Dispatcher.BeginInvoke(() => _host.Main.ShowPanel()));
             _host.Start(startHidden: minimized && _host.Controller.Settings.StartHidden);
@@ -90,13 +92,19 @@ public partial class App : Application
             if (!Hotkey.TryParse("Ctrl+Alt+Space", out _)) throw new InvalidOperationException("hotkey parser");
             Step("hotkey parser");
             if (!WakePhraseMatcher.TryMatch("היי, שיר! פתח וורד", "היי שיר", out var wakeCommand) || wakeCommand != "פתח וורד") throw new InvalidOperationException("wake phrase matcher");
-            var listener = new WakeWordListener((_, _, _) => Task.FromResult(""), () => false, _ => { });
+            var listener = new WakeWordListener((_, _, _) => Task.FromResult(""), () => false, () => true, _ => { });
             listener.Start(); await Task.Delay(1500); var wakeStatus = listener.Status; listener.Stop();
             Step($"wake-word listener ran ({wakeStatus})");
 
             var welcome = new WelcomeWindow(host); welcome.Show(); await Task.Delay(300); Snap(welcome, "welcome"); welcome.Close(); Step("welcome window");
             host.OpenSettings(); await Task.Delay(500);
-            foreach (var w in Windows.OfType<SettingsWindow>().ToList()) { Snap(w, "settings"); w.Close(); }
+            foreach (var w in Windows.OfType<SettingsWindow>().ToList())
+            {
+                Snap(w, "settings");
+                if (w.Content is System.Windows.Controls.DockPanel { Children: [_, System.Windows.Controls.TabControl tabs] })
+                    for (var i = 1; i < tabs.Items.Count; i++) { tabs.SelectedIndex = i; await Task.Delay(250); Snap(w, $"settings-{i}"); }
+                w.Close();
+            }
             Step("settings window");
 
             var apps = await AppLauncher.GetInstalledAppsAsync();

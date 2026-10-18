@@ -16,6 +16,11 @@ public sealed class SettingsWindow : Window
     private readonly AppSettings _settings;
     private readonly List<ProviderConfig> _providers;
 
+    // AI
+    private readonly RadioButton _modeAuto = new() { GroupName = "mode", Content = "אוטומטי (מומלץ) — ענן, ואם אין אינטרנט או שנגמרה המכסה: המוח האופליין" };
+    private readonly RadioButton _modeCloud = new() { GroupName = "mode", Content = "ענן בלבד — ספק ה-API שנבחר למטה" };
+    private readonly RadioButton _modeOffline = new() { GroupName = "mode", Content = "אופליין בלבד — הכל במחשב, בלי אינטרנט (צריך להוריד בלשונית 'אופליין')" };
+    private readonly CheckBox _quick = new() { Content = "פקודות מהירות בלי AI — 'פתחי וורד', 'חפשי…', 'מה השעה', ווליום, טיימרים: מיידי ולא צורך מכסה" };
     private readonly ComboBox _provider = new() { MinWidth = 280, DisplayMemberPath = nameof(ProviderConfig.DisplayName) };
     private readonly PasswordBox _key = new() { MinWidth = 280, Padding = new Thickness(4) };
     private readonly TextBlock _keyStatus = new() { Margin = new Thickness(0, 4, 0, 0), FontSize = 12.5 };
@@ -25,23 +30,30 @@ public sealed class SettingsWindow : Window
     private readonly TextBox _transcription = new() { MinWidth = 280, Padding = new Thickness(4), FlowDirection = FlowDirection.LeftToRight };
     private readonly TextBlock _testResult = new() { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 8, 0, 0), MaxWidth = 480 };
 
-    private readonly TextBox _hkAssistant = HotkeyBox(), _hkVoice = HotkeyBox(), _hkCircle = HotkeyBox(), _hkTranslate = HotkeyBox();
-    private readonly CheckBox _copilot = new() { Content = "גם מקש ה-Copilot במקלדת פותח את העוזר" };
+    // Shortcuts
+    private readonly HotkeyEditor _hkAssistant, _hkVoice, _hkDictation, _hkCircle, _hkTranslate;
+    private readonly CheckBox _copilot = new() { Content = "גם מקש ה-Copilot במקלדת פותח את העוזרת" };
     private readonly CheckBox _longPress = new() { Content = "לחיצה ארוכה על משטח המגע / העכבר (בלי להזיז) פותחת \"הקף וחפש\"" };
     private readonly Slider _longPressMs = new() { Minimum = 500, Maximum = 2000, TickFrequency = 100, IsSnapToTickEnabled = true, Width = 220 };
     private readonly TextBlock _longPressLabel = new() { Margin = new Thickness(8, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
 
-    private readonly CheckBox _speak = new() { Content = "הקרא את התשובות בקול" };
-    private readonly CheckBox _wakeEnabled = new() { Content = "האזנה למילת הפעלה — לקרוא לעוזר בקול והוא נפתח לבד" };
+    // Voice
+    private readonly RadioButton _speechAuto = new() { GroupName = "speech", Content = "אוטומטי — במחשב אם הורדתם זיהוי דיבור אופליין, אחרת בענן" };
+    private readonly RadioButton _speechOffline = new() { GroupName = "speech", Content = "תמיד במחשב (אופליין)" };
+    private readonly RadioButton _speechCloud = new() { GroupName = "speech", Content = "תמיד בענן (ספק ה-AI)" };
+    private readonly CheckBox _speak = new() { Content = "הקריאי את התשובות בקול" };
+    private readonly CheckBox _autoSend = new() { Content = "שלחי אוטומטית כשסיימתי לדבר" };
+    private readonly CheckBox _wakeEnabled = new() { Content = "להאזין למילת הפעלה (קוראים בקול והעוזרת נפתחת לבד)" };
+    private readonly CheckBox _wakeCharging = new() { Content = "רק כשהמחשב מחובר לחשמל (חוסך סוללה) — מומלץ" };
     private readonly TextBox _assistantName = new() { MinWidth = 200, Padding = new Thickness(4) };
     private readonly TextBox _wakePhrase = new() { MinWidth = 200, Padding = new Thickness(4) };
     private readonly TextBlock _wakeStatus = new() { TextWrapping = TextWrapping.Wrap, FontSize = 12.5, Margin = new Thickness(0, 4, 0, 8) };
-    private readonly CheckBox _autoSend = new() { Content = "שלח אוטומטית אחרי שסיימתי לדבר" };
     private readonly ComboBox _target = new() { IsEditable = true, MinWidth = 200, ItemsSource = new[] { "עברית", "English", "العربية", "Русский", "Français", "Español", "Deutsch", "አማርኛ", "Українська" } };
 
-    private readonly CheckBox _autostart = new() { Content = "הפעל עם Windows" };
-    private readonly CheckBox _startHidden = new() { Content = "כשנפתח עם Windows — התחל מוסתר (רק סמל ליד השעון)" };
-    private readonly CheckBox _confirm = new() { Content = "בקש אישור לפני פעולות רגישות (שיחה, פקודת מערכת, שליחה/קנייה/מחיקה)" };
+    // General
+    private readonly CheckBox _autostart = new() { Content = "הפעלה עם Windows" };
+    private readonly CheckBox _startHidden = new() { Content = "כשנפתחת עם Windows — להתחיל מוסתרת (רק סמל ליד השעון)" };
+    private readonly CheckBox _confirm = new() { Content = "לבקש אישור לפני פעולות רגישות (שיחה, פקודת מערכת, שליחה/קנייה/מחיקה)" };
     private readonly Slider _steps = new() { Minimum = 5, Maximum = 80, TickFrequency = 5, IsSnapToTickEnabled = true, Width = 220 };
     private readonly TextBlock _stepsLabel = new() { Margin = new Thickness(8, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
     private readonly ListBox _memory = new() { Height = 140, MinWidth = 420 };
@@ -53,23 +65,32 @@ public sealed class SettingsWindow : Window
         _host = host;
         _settings = host.Controller.Settings;
         _providers = _settings.Providers.Select(p => p.Clone()).ToList();
-        Title = "הגדרות — העוזר האישי";
-        Width = 640; Height = 680; MinWidth = 560; MinHeight = 520;
+        var defaults = new AppSettings();
+        _hkAssistant = new HotkeyEditor("פתיחת העוזרת", "פותח/מסתיר את החלון הקטן", _settings.AssistantHotkey, defaults.AssistantHotkey);
+        _hkVoice = new HotkeyEditor("דיבור עם העוזרת", "מקשיבה לבקשה ומבצעת", _settings.VoiceHotkey, defaults.VoiceHotkey);
+        _hkDictation = new HotkeyEditor("הכתבה", "מדברים — והטקסט מוקלד בחלון שבו אתם (Word, וואטסאפ…)", _settings.DictationHotkey, defaults.DictationHotkey);
+        _hkCircle = new HotkeyEditor("הקף וחפש", "מקפיא את המסך כדי להקיף משהו", _settings.CircleSearchHotkey, defaults.CircleSearchHotkey);
+        _hkTranslate = new HotkeyEditor("תרגום מסך", "מתרגם את כל מה שעל המסך", _settings.TranslateHotkey, defaults.TranslateHotkey);
+
+        Title = $"הגדרות — {_settings.AssistantName}";
+        Width = 700; Height = 720; MinWidth = 600; MinHeight = 520;
         WindowStartupLocation = WindowStartupLocation.CenterScreen;
         FlowDirection = FlowDirection.RightToLeft;
         FontFamily = Theme.Font; FontSize = 13.5;
         Background = new SolidColorBrush(Color.FromRgb(248, 249, 251));
-        Topmost = true;
         Icon = Theme.AppIcon;
 
         var tabs = new TabControl { Margin = new Thickness(14, 14, 14, 0), Padding = new Thickness(16) };
         tabs.Items.Add(new TabItem { Header = "  בינה מלאכותית  ", Content = Scroll(BuildAiTab()) });
-        tabs.Items.Add(new TabItem { Header = "  קיצורים ומחוות  ", Content = Scroll(BuildShortcutsTab()) });
+        tabs.Items.Add(new TabItem { Header = "  קיצורים  ", Content = Scroll(BuildShortcutsTab()) });
         tabs.Items.Add(new TabItem { Header = "  קול ומילת הפעלה  ", Content = Scroll(BuildVoiceTab()) });
+        var offline = new OfflinePanel(host);
+        offline.Changed += () => { _host.OnSettingsChanged(); UpdateWakeStatus(); };
+        tabs.Items.Add(new TabItem { Header = "  🔌 אופליין  ", Content = Scroll(offline) });
         tabs.Items.Add(new TabItem { Header = "  כללי וזיכרון  ", Content = Scroll(BuildGeneralTab()) });
 
         var save = new Button { Content = "שמור", Style = (Style)Application.Current.Resources["AccentButton"], MinWidth = 110 };
-        var cancel = new Button { Content = "ביטול", MinWidth = 90 };
+        var cancel = new Button { Content = "סגור", MinWidth = 90 };
         save.Click += (_, _) => Save();
         cancel.Click += (_, _) => Close();
         var buttons = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(14, 10, 14, 14), Children = { save, cancel } };
@@ -87,7 +108,15 @@ public sealed class SettingsWindow : Window
     private UIElement BuildAiTab()
     {
         var panel = new StackPanel();
-        panel.Children.Add(Note("בחר את ה\"מוח\" של העוזר. כל ספק עובד: Gemini (יש מסלול חינמי), OpenAI, Claude, Groq, OpenRouter, DeepSeek, או מודל מקומי עם Ollama. המפתח נשמר מוצפן במנהל האישורים של Windows."));
+        panel.Children.Add(Header("איפה ה\"מוח\" רץ"));
+        panel.Children.Add(Spaced(_modeAuto, 2));
+        panel.Children.Add(Spaced(_modeCloud, 2));
+        panel.Children.Add(Spaced(_modeOffline, 2));
+        panel.Children.Add(Spaced(_quick, 10));
+
+        panel.Children.Add(Header("ספק בענן (API)"));
+        panel.Children.Add(Note("Gemini (יש מסלול חינמי), OpenAI, Claude, Groq, OpenRouter, DeepSeek, או Ollama. המפתח נשמר מוצפן במנהל האישורים של Windows. " +
+                                "טיפ למכסה החינמית: פקודות מהירות והכתבה כמעט לא צורכות ממנה; משימות מורכבות (כמה צעדים) צורכות כמה בקשות כל אחת."));
         panel.Children.Add(Row("ספק", _provider));
         var keyStack = new StackPanel { Children = { _key, _keyStatus, _keyLink } };
         var deleteKey = new Button { Content = "מחק מפתח", Padding = new Thickness(10, 4, 10, 4), VerticalAlignment = VerticalAlignment.Top };
@@ -98,7 +127,7 @@ public sealed class SettingsWindow : Window
         loadModels.Click += async (_, _) => await LoadModelsAsync();
         panel.Children.Add(Row("מודל", _model, loadModels));
         panel.Children.Add(Row("מודל תמלול (דיבור)", _transcription));
-        panel.Children.Add(Note("למשל whisper-large-v3-turbo ב-Groq או gpt-transcribe ב-OpenAI. ב-Gemini אין צורך — הוא מתמלל בעצמו."));
+        panel.Children.Add(Note("למשל whisper-large-v3-turbo ב-Groq או gpt-transcribe ב-OpenAI. ב-Gemini אין צורך."));
         var test = new Button { Content = "🔌 בדוק חיבור", Style = (Style)Application.Current.Resources["AccentButton"], HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 12, 0, 0) };
         test.Click += async (_, _) => await TestAsync();
         panel.Children.Add(test);
@@ -112,42 +141,47 @@ public sealed class SettingsWindow : Window
     private UIElement BuildShortcutsTab()
     {
         var panel = new StackPanel();
-        panel.Children.Add(Note("לחץ בתוך תיבה ואז הקש את צירוף המקשים החדש. Backspace מנקה."));
-        panel.Children.Add(Row("פתיחת העוזר", _hkAssistant));
-        panel.Children.Add(Row("דיבור", _hkVoice));
-        panel.Children.Add(Row("הקף וחפש", _hkCircle));
-        panel.Children.Add(Row("תרגום מסך", _hkTranslate));
-        panel.Children.Add(Spaced(_copilot));
-        panel.Children.Add(Spaced(_longPress, 18));
+        panel.Children.Add(Note("לכל קיצור יש ✏ — לוחצים, ואז מקישים את הצירוף שנוח לכם (למשל Ctrl+Alt+K). ↺ מחזיר לברירת המחדל, Backspace מכבה את הקיצור."));
+        foreach (var editor in new[] { _hkAssistant, _hkVoice, _hkDictation, _hkCircle, _hkTranslate }) panel.Children.Add(editor);
+        panel.Children.Add(Spaced(_copilot, 12));
+        panel.Children.Add(Header("לחיצה ארוכה"));
+        panel.Children.Add(Spaced(_longPress, 2));
         _longPressMs.ValueChanged += (_, _) => _longPressLabel.Text = $"{_longPressMs.Value / 1000:0.0} שניות";
         panel.Children.Add(Row("משך הלחיצה", new StackPanel { Orientation = Orientation.Horizontal, Children = { _longPressMs, _longPressLabel } }));
-        panel.Children.Add(Note("לחיצה רגילה, לחיצה כפולה וגרירה ממשיכות לעבוד כרגיל — רק לחיצה ארוכה ושקטה מפעילה את החיפוש."));
+        panel.Children.Add(Note("לחיצה רגילה, כפולה וגרירה ממשיכות לעבוד כרגיל — רק לחיצה ארוכה ושקטה מפעילה את החיפוש."));
         return panel;
     }
 
     private UIElement BuildVoiceTab()
     {
         var panel = new StackPanel();
-        panel.Children.Add(new TextBlock { Text = "קריאה בקול", FontWeight = FontWeights.SemiBold, FontSize = 15, Margin = new Thickness(0, 0, 0, 4) });
-        panel.Children.Add(Spaced(_wakeEnabled, 4));
-        panel.Children.Add(Row("שם העוזר", _assistantName));
+        panel.Children.Add(Header("זיהוי דיבור"));
+        panel.Children.Add(Spaced(_speechAuto, 2));
+        panel.Children.Add(Spaced(_speechOffline, 2));
+        panel.Children.Add(Spaced(_speechCloud, 2));
+        panel.Children.Add(Spaced(_autoSend, 10));
+        panel.Children.Add(Spaced(_speak, 4));
+        panel.Children.Add(Note("להקראה בעברית: הגדרות Windows ← זמן ושפה ← דיבור ← הוספת קול עברי."));
+
+        panel.Children.Add(Header("מילת הפעלה"));
+        panel.Children.Add(Note("כדי לשמוע שקוראים לה, המיקרופון צריך להאזין — כך עובדים כל העוזרים הקוליים (גם Siri ו-Alexa). " +
+                                "כאן ההאזנה היא 100% במחשב: שום דבר לא נשלח לאינטרנט ולא צורך מכסה. בשקט המיקרופון כמעט לא צורך מעבד; " +
+                                "רק משפטים קצרים נבדקים במנוע הדיבור המקומי. כבוי כברירת מחדל."));
+        panel.Children.Add(Spaced(_wakeEnabled, 2));
+        panel.Children.Add(Spaced(_wakeCharging, 2));
+        panel.Children.Add(Row("שם העוזרת", _assistantName));
         panel.Children.Add(Row("מילת הפעלה", _wakePhrase));
         panel.Children.Add(_wakeStatus);
-        panel.Children.Add(Note("אומרים את מילת ההפעלה והעוזר נפתח ומקשיב. אפשר גם להמשיך באותו משפט: \"היי שיר, פתח וורד\" — והפעולה מתבצעת מיד.\n" +
-            "פרטיות: המיקרופון מנותח במחשב. רק כשמישהו אומר משפט קצר (עד 6 שניות) הקטע נשלח לתמלול אצל ספק ה-AI כדי לבדוק אם נאמרה מילת ההפעלה; שיחות ארוכות לא נשלחות, ושום הקלטה לא נשמרת. אפשר לכבות גם מהסמל ליד השעון."));
         string? lastAutoPhrase = null;
         _assistantName.TextChanged += (_, _) =>
         {
-            // Keep "היי <name>" in sync while the user hasn't typed a custom phrase.
             var auto = "היי " + _assistantName.Text.Trim();
             if (lastAutoPhrase is null || _wakePhrase.Text == lastAutoPhrase || _wakePhrase.Text.Length == 0) _wakePhrase.Text = auto;
             lastAutoPhrase = auto;
         };
-        panel.Children.Add(new TextBlock { Text = "דיבור והקראה", FontWeight = FontWeights.SemiBold, FontSize = 15, Margin = new Thickness(0, 14, 0, 4) });
-        panel.Children.Add(Spaced(_autoSend));
-        panel.Children.Add(Spaced(_speak));
-        panel.Children.Add(Note("כדי שההקראה תהיה בעברית: הגדרות Windows ← זמן ושפה ← דיבור ← הוסף קול עברי."));
-        panel.Children.Add(Row("לתרגם מסך לשפה", _target));
+
+        panel.Children.Add(Header("תרגום מסך"));
+        panel.Children.Add(Row("לתרגם לשפה", _target));
         return panel;
     }
 
@@ -159,7 +193,7 @@ public sealed class SettingsWindow : Window
         panel.Children.Add(Spaced(_confirm));
         _steps.ValueChanged += (_, _) => _stepsLabel.Text = $"{_steps.Value:0} צעדים";
         panel.Children.Add(Row("מקסימום צעדים למשימה", new StackPanel { Orientation = Orientation.Horizontal, Children = { _steps, _stepsLabel } }));
-        panel.Children.Add(new TextBlock { Text = "מה העוזר זוכר עליך", FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 18, 0, 6) });
+        panel.Children.Add(Header("מה העוזרת זוכרת עליך"));
         panel.Children.Add(_memory);
         var remove = new Button { Content = "מחק את הנבחר", Padding = new Thickness(10, 4, 10, 4), HorizontalAlignment = HorizontalAlignment.Right };
         remove.Click += (_, _) => { if (_memory.SelectedItem is string item) _memory.Items.Remove(item); };
@@ -175,25 +209,34 @@ public sealed class SettingsWindow : Window
     private void LoadValues()
     {
         _provider.SelectedItem = _providers.FirstOrDefault(p => p.Id == _settings.ActiveProviderId) ?? _providers[0];
-        _hkAssistant.Text = _settings.AssistantHotkey; _hkVoice.Text = _settings.VoiceHotkey; _hkCircle.Text = _settings.CircleSearchHotkey; _hkTranslate.Text = _settings.TranslateHotkey;
+        (_settings.AiMode switch { AiMode.Cloud => _modeCloud, AiMode.Offline => _modeOffline, _ => _modeAuto }).IsChecked = true;
+        _quick.IsChecked = _settings.QuickCommands;
         _copilot.IsChecked = _settings.UseCopilotKey;
         _longPress.IsChecked = _settings.TouchpadLongPressEnabled;
         _longPressMs.Value = _settings.LongPressMilliseconds;
+        (_settings.SpeechEngine switch { SpeechEngine.Offline => _speechOffline, SpeechEngine.Cloud => _speechCloud, _ => _speechAuto }).IsChecked = true;
         _speak.IsChecked = _settings.SpeakReplies;
+        _autoSend.IsChecked = _settings.AutoSendVoice;
         _wakeEnabled.IsChecked = _settings.WakeWordEnabled;
+        _wakeCharging.IsChecked = _settings.WakeOnlyWhenCharging;
         _assistantName.Text = _settings.AssistantName;
         _wakePhrase.Text = _settings.WakePhrase;
-        var canHear = _host.Controller.CanTranscribe;
-        _wakeStatus.Text = !canHear ? "⚠ כדי שהעוזר ישמע אותך צריך מפתח של Gemini, OpenAI או Groq (לשונית 'בינה מלאכותית')."
-            : _host.WakeWordActive ? "✓ מאזין עכשיו." : "כבוי כרגע.";
-        _wakeStatus.Foreground = !canHear ? new SolidColorBrush(Color.FromRgb(197, 34, 31)) : Brushes.DimGray;
-        _autoSend.IsChecked = _settings.AutoSendVoice;
+        UpdateWakeStatus();
         _target.Text = _settings.TranslationTarget;
         _autostart.IsChecked = _settings.StartWithWindows;
         _startHidden.IsChecked = _settings.StartHidden;
         _confirm.IsChecked = _settings.ConfirmSensitiveActions;
         _steps.Value = _settings.MaxAgentSteps;
         foreach (var item in _settings.Memory) _memory.Items.Add(item);
+    }
+
+    private void UpdateWakeStatus()
+    {
+        var ready = _host.Offline.SpeechReady;
+        _wakeStatus.Text = !ready ? "⚠ מילת ההפעלה צריכה את זיהוי הדיבור האופליין — הורידו אותו בלשונית \"🔌 אופליין\" (מ-190MB)."
+            : _host.WakeWordActive ? $"✓ פעיל ({_host.WakeWordStatus})." : "כבוי כרגע.";
+        _wakeStatus.Foreground = !ready ? new SolidColorBrush(Color.FromRgb(197, 34, 31)) : Brushes.DimGray;
+        _wakeEnabled.IsEnabled = ready || _wakeEnabled.IsChecked == true;
     }
 
     private void ShowProvider(ProviderConfig? provider)
@@ -282,25 +325,33 @@ public sealed class SettingsWindow : Window
     private void Save()
     {
         StoreCurrent();
-        foreach (var box in new[] { _hkAssistant, _hkVoice, _hkCircle, _hkTranslate })
-            if (box.Text.Length > 0 && !Hotkey.TryParse(box.Text, out _)) { MessageBox.Show(this, $"הקיצור '{box.Text}' לא תקין.", "הגדרות"); return; }
-
+        var editors = new[] { _hkAssistant, _hkVoice, _hkDictation, _hkCircle, _hkTranslate };
+        var duplicate = editors.Where(e => e.Value.Length > 0).GroupBy(e => e.Value, StringComparer.OrdinalIgnoreCase).FirstOrDefault(g => g.Count() > 1);
+        if (duplicate is not null) { MessageBox.Show(this, $"אותו קיצור ({duplicate.Key}) נבחר ל: {string.Join(" וגם ", duplicate.Select(e => e.Label))}.", "קיצורים"); return; }
         if (_wakeEnabled.IsChecked == true && _wakePhrase.Text.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length < 2)
         {
-            MessageBox.Show(this, "מילת הפעלה צריכה להיות לפחות שתי מילים (למשל \"היי שיר\"), אחרת העוזר ייפתח בטעות באמצע שיחות.", "מילת הפעלה");
+            MessageBox.Show(this, "מילת הפעלה צריכה להיות לפחות שתי מילים (למשל \"היי שיר\"), אחרת העוזרת תיפתח בטעות באמצע שיחות.", "מילת הפעלה");
             return;
         }
+        if (_modeOffline.IsChecked == true && !_host.Offline.BrainReady)
+            MessageBox.Show(this, "בחרתם מצב אופליין, אבל המוח האופליין עוד לא הורד. בינתיים יעבדו רק הפקודות המהירות. אפשר להוריד בלשונית \"🔌 אופליין\".", "אופליין");
+
         _settings.Providers = _providers;
         if (_provider.SelectedItem is ProviderConfig selected) _settings.ActiveProviderId = selected.Id;
-        _settings.AssistantHotkey = _hkAssistant.Text; _settings.VoiceHotkey = _hkVoice.Text; _settings.CircleSearchHotkey = _hkCircle.Text; _settings.TranslateHotkey = _hkTranslate.Text;
+        _settings.AiMode = _modeOffline.IsChecked == true ? AiMode.Offline : _modeCloud.IsChecked == true ? AiMode.Cloud : AiMode.Auto;
+        _settings.QuickCommands = _quick.IsChecked == true;
+        _settings.AssistantHotkey = _hkAssistant.Value; _settings.VoiceHotkey = _hkVoice.Value; _settings.DictationHotkey = _hkDictation.Value;
+        _settings.CircleSearchHotkey = _hkCircle.Value; _settings.TranslateHotkey = _hkTranslate.Value;
         _settings.UseCopilotKey = _copilot.IsChecked == true;
         _settings.TouchpadLongPressEnabled = _longPress.IsChecked == true;
         _settings.LongPressMilliseconds = (int)_longPressMs.Value;
+        _settings.SpeechEngine = _speechOffline.IsChecked == true ? SpeechEngine.Offline : _speechCloud.IsChecked == true ? SpeechEngine.Cloud : SpeechEngine.Auto;
         _settings.SpeakReplies = _speak.IsChecked == true;
+        _settings.AutoSendVoice = _autoSend.IsChecked == true;
         _settings.WakeWordEnabled = _wakeEnabled.IsChecked == true;
+        _settings.WakeOnlyWhenCharging = _wakeCharging.IsChecked == true;
         _settings.AssistantName = _assistantName.Text.Trim();
         _settings.WakePhrase = _wakePhrase.Text.Trim();
-        _settings.AutoSendVoice = _autoSend.IsChecked == true;
         _settings.TranslationTarget = string.IsNullOrWhiteSpace(_target.Text) ? "עברית" : _target.Text.Trim();
         _settings.StartWithWindows = _autostart.IsChecked == true;
         _settings.StartHidden = _startHidden.IsChecked == true;
@@ -314,31 +365,7 @@ public sealed class SettingsWindow : Window
 
     // ---------------- helpers ----------------
 
-    private static TextBox HotkeyBox()
-    {
-        var box = new TextBox { MinWidth = 200, IsReadOnly = true, Padding = new Thickness(4), FlowDirection = FlowDirection.LeftToRight, Cursor = Cursors.Hand, IsReadOnlyCaretVisible = false };
-        box.PreviewKeyDown += (_, e) =>
-        {
-            e.Handled = true;
-            var key = e.Key == Key.System ? e.SystemKey : e.Key;
-            if (key is Key.Back or Key.Delete) { box.Text = ""; return; }
-            if (key is Key.LeftCtrl or Key.RightCtrl or Key.LeftAlt or Key.RightAlt or Key.LeftShift or Key.RightShift or Key.LWin or Key.RWin or Key.Tab) return;
-            var mods = Keyboard.Modifiers;
-            var name = key switch
-            {
-                Key.Space => "Space", Key.Enter => "Enter", Key.Escape => "Esc",
-                >= Key.D0 and <= Key.D9 => ((int)(key - Key.D0)).ToString(),
-                >= Key.A and <= Key.Z => key.ToString(),
-                >= Key.F1 and <= Key.F24 => key.ToString(),
-                Key.OemPlus => "PLUS", Key.OemMinus => "MINUS", Key.OemPeriod => "PERIOD", Key.OemComma => "COMMA",
-                _ => key.ToString().ToUpperInvariant()
-            };
-            var win = Keyboard.IsKeyDown(Key.LWin) || Keyboard.IsKeyDown(Key.RWin);
-            if (mods == ModifierKeys.None && !win && !(key >= Key.F1 && key <= Key.F24)) return; // a bare letter would block typing everywhere
-            box.Text = Hotkey.Format(mods.HasFlag(ModifierKeys.Control), mods.HasFlag(ModifierKeys.Alt), mods.HasFlag(ModifierKeys.Shift), win, name);
-        };
-        return box;
-    }
+    private static TextBlock Header(string text) => new() { Text = text, FontWeight = FontWeights.SemiBold, FontSize = 15, Margin = new Thickness(0, 14, 0, 4) };
 
     private static ScrollViewer Scroll(UIElement content) => new() { Content = content, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, Padding = new Thickness(4) };
 

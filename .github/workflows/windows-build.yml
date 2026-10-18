@@ -3,7 +3,7 @@ name: Build Windows installer
 'on':
   workflow_dispatch:
   push:
-    branches: ['**']
+    branches: [main]
     paths-ignore: ['**.md']
 
 permissions:
@@ -59,3 +59,29 @@ jobs:
             --title "העוזר האישי $env:APP_VERSION" `
             --notes "מתקין ל-Windows 10/11 (x64). הורד את DesktopAssistant-Setup.exe והפעל. נבנה מ-${{ github.sha }} ועבר בדיקת הפעלה אוטומטית על Windows." `
             --latest
+
+  offline-test:
+    # Downloads the light offline packs from their real URLs and runs local speech + brain on Windows.
+    needs: build
+    runs-on: windows-2025
+    timeout-minutes: 60
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dl
+      - name: Run the offline stack test
+        shell: pwsh
+        run: |
+          $zip = Get-ChildItem dl -Recurse -Filter 'DesktopAssistant-Portable-Windows-x64.zip' | Select-Object -First 1
+          Expand-Archive $zip.FullName -DestinationPath app
+          $marker = Join-Path $env:LOCALAPPDATA 'DesktopAssistant\offline-result.txt'
+          $p = Start-Process -FilePath app\DesktopAssistant.exe -ArgumentList '--smoke-offline' -PassThru
+          if (-not $p.WaitForExit(3300000)) { Stop-Process -Id $p.Id -Force }
+          $result = if (Test-Path $marker) { Get-Content $marker -Raw } else { '(no result file)' }
+          $log = Get-ChildItem (Join-Path $env:LOCALAPPDATA 'DesktopAssistant\logs') -Filter 'app-*.log' -ErrorAction SilentlyContinue | Sort-Object LastWriteTime | Select-Object -Last 1
+          $tail = if ($log) { (Get-Content $log.FullName -Tail 40) -join "`n" } else { '' }
+          Write-Host $result; Write-Host $tail
+          Write-Host ("::notice title=Offline test::" + ($result -replace "`r","" -replace "`n","%0A"))
+          Write-Host ("::notice title=Offline log::" + ($tail -replace "`r","" -replace "`n","%0A"))
+          if (-not $result.StartsWith('OFFLINE OK')) { exit 1 }
+
