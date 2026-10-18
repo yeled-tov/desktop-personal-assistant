@@ -1,0 +1,46 @@
+**********************
+PowerShell transcript start
+Start time: 20261018111847
+Username: runnervm0xl3a\runneradmin
+RunAs User: runnervm0xl3a\runneradmin
+Configuration Name: 
+Machine: runnervm0xl3a (Microsoft Windows NT 10.0.26100.0)
+Host Application: C:\Program Files\PowerShell\7\pwsh.dll -command . 'D:\a\_temp\569157a3-ad23-4db8-aa04-c67990098f5d.ps1'
+Process ID: 2676
+PSVersion: 7.6.6
+PSEdition: Core
+GitCommitId: 7.6.6
+OS: Microsoft Windows 10.0.26100
+Platform: Win32NT
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1, 6.0, 7.0
+PSRemotingProtocolVersion: 2.4
+SerializationVersion: 1.1.0.1
+WSManStackVersion: 3.0
+**********************
+Transcript started, output file is diag-output.txt
+CSC : warning WFO0003: Remove high DPI settings from D:\a\desktop-personal-assistant\desktop-personal-assistant\src\DesktopAssistant.App\app.manifest and configure via Application.SetHighDpiMode API or 'ApplicationHighDpiMode' project property (https://aka.ms/winforms-warnings/wfo0003) [D:\a\desktop-personal-assistant\desktop-personal-assistant\src\DesktopAssistant.App\DesktopAssistant.App.csproj]
+  DesktopAssistant.App -> D:\a\desktop-personal-assistant\desktop-personal-assistant\src\DesktopAssistant.App\bin\Release\net10.0-windows\win-x64\DesktopAssistant.dll
+  DesktopAssistant.App -> D:\a\desktop-personal-assistant\desktop-personal-assistant\app\
+
+Name                    Length
+----                    ------
+DesktopAssistant.exe 173196390
+DesktopAssistant.pdb     49276
+
+HasExited: True  ExitCode: -1073740791
+--- Application event log (.NET Runtime / Application Error) ---
+[Application Error] Faulting application name: DesktopAssistant.exe, version: 0.1.0.0, time stamp: 0x6ac2c664
+Faulting module name: USER32.dll, version: 10.0.26100.33438, time stamp: 0x00acfda3
+Exception code: 0xc0000409
+Fault offset: 0x0000000000011d3b
+Faulting process id: 0xC68
+Faulting application start time: 0x1DD5EF27DA650E3
+Faulting application path: D:\a\desktop-personal-assistant\desktop-personal-assistant\app\DesktopAssistant.exe
+Faulting module path: C:\Windows\System32\USER32.dll
+Report Id: c6a7f955-537c-4523-8787-574a7670d19f
+Faulting package full name: 
+Faulting package-relative application ID:
+**********************
+PowerShell transcript end
+End time: 20261018111927
+**********************
