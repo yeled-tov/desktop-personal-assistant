@@ -27,7 +27,9 @@ public sealed class OpenAiCompatibleModel(ProviderConfig config) : ChatModelBase
             body["tools"] = list;
         }
         if (options.JsonOutput) body["response_format"] = new JsonObject { ["type"] = "json_object" };
-        if (Config.Id == "openrouter") body["max_tokens"] = options.MaxOutputTokens;
+        // Always cap the answer: without a limit a local model under a JSON grammar can keep emitting whitespace forever.
+        if (Config.Id == "openai") body["max_completion_tokens"] = options.MaxOutputTokens;
+        else body["max_tokens"] = options.MaxOutputTokens;
 
         using var request = new HttpRequestMessage(HttpMethod.Post, $"{BaseUrl}/chat/completions") { Content = JsonContent(body) };
         Authorize(request);
