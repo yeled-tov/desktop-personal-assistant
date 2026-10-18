@@ -9,6 +9,10 @@ namespace DesktopAssistant.Voice;
 public sealed class SpeechOutput : IDisposable
 {
     private SoundPlayer? _player;
+    private DateTime _speakingUntil = DateTime.MinValue;
+
+    /// <summary>True while a reply is being read aloud (so the wake-word listener doesn't hear the assistant itself).</summary>
+    public bool IsSpeaking => DateTime.UtcNow < _speakingUntil;
 
     public async Task SpeakAsync(string text, CancellationToken cancellationToken)
     {
@@ -27,6 +31,8 @@ public sealed class SpeechOutput : IDisposable
             var memory = new MemoryStream();
             await stream.AsStreamForRead().CopyToAsync(memory, cancellationToken);
             memory.Position = 0;
+            var bytesPerSecond = memory.Length > 32 ? BitConverter.ToInt32(memory.GetBuffer(), 28) : 0;
+            if (bytesPerSecond > 0) _speakingUntil = DateTime.UtcNow.AddSeconds(memory.Length / (double)bytesPerSecond + 0.5);
             _player = new SoundPlayer(memory);
             _player.Play();
         }
@@ -38,6 +44,7 @@ public sealed class SpeechOutput : IDisposable
     {
         try { _player?.Stop(); _player?.Dispose(); } catch { }
         _player = null;
+        _speakingUntil = DateTime.MinValue;
     }
 
     public void Dispose() => Stop();

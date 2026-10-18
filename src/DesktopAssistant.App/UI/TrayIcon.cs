@@ -16,6 +16,15 @@ public sealed class TrayIcon : IDisposable
         void Item(string text, Action action) => menu.Items.Add(text, null, (_, _) => AppLog.Guard("tray menu", action));
         Item("✦ פתח את העוזר", () => host.Main.ShowPanel());
         Item("🎙 דבר עם העוזר", () => _ = host.Main.ToggleVoiceAsync());
+        var wake = new Forms.ToolStripMenuItem("👂 האזנה למילת ההפעלה") { CheckOnClick = true };
+        menu.Opening += (_, _) => { wake.Text = $"👂 האזנה ל\"{host.Controller.Settings.WakePhrase}\""; wake.Checked = host.Controller.Settings.WakeWordEnabled; };
+        wake.Click += (_, _) => AppLog.Guard("tray wake toggle", () =>
+        {
+            host.Controller.Settings.WakeWordEnabled = wake.Checked;
+            host.OnSettingsChanged();
+            if (wake.Checked && !host.WakeWordActive) UI.Toast.Show("מילת הפעלה", "כדי להאזין צריך ספק שיודע לתמלל דיבור: Gemini, OpenAI או Groq (הגדרות ← בינה מלאכותית).");
+        });
+        menu.Items.Add(wake);
         Item("◎ הקף וחפש", () => _ = host.StartCircleSearchAsync());
         Item("🌐 תרגם את המסך", () => _ = host.StartTranslationAsync());
         menu.Items.Add(new Forms.ToolStripSeparator());

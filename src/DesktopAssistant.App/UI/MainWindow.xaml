@@ -28,7 +28,7 @@
         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
           <TextBlock Text="✦" FontSize="22" Foreground="{StaticResource GeminiGradient}" VerticalAlignment="Center" Margin="0,0,8,0" />
           <StackPanel>
-            <TextBlock Text="העוזר שלך" FontSize="17" FontWeight="SemiBold" />
+            <TextBlock x:Name="TitleText" Text="שיר" FontSize="17" FontWeight="SemiBold" />
             <TextBlock x:Name="ProviderText" Text="" FontSize="11.5" Foreground="{StaticResource TextSecondary}" />
           </StackPanel>
         </StackPanel>

@@ -6,6 +6,7 @@ using DesktopAssistant.Input;
 using DesktopAssistant.Overlay;
 using DesktopAssistant.Settings;
 using DesktopAssistant.UI;
+using DesktopAssistant.Voice;
 
 namespace DesktopAssistant;
 
@@ -16,6 +17,7 @@ public sealed class AppHost : IDisposable
     private LongPressDetector? _longPress;
     private TrayIcon? _tray;
     private SettingsWindow? _settingsWindow;
+    private WakeWordListener? _wake;
 
     public AssistantController Controller { get; }
     public MainWindow Main { get; }
@@ -38,6 +40,11 @@ public sealed class AppHost : IDisposable
             () => Application.Current.Dispatcher.BeginInvoke(() => _ = StartCircleSearchAsync()),
             () => CircleSearchSession.IsOpen || Main.IsBusy || ForegroundIsOurs());
         ApplyLongPress();
+        _wake = new WakeWordListener(
+            (wav, hint, token) => Controller.TranscribeAsync(wav, token, hint),
+            () => Main.IsRecording || Main.IsBusy || Main.IsSpeaking || CircleSearchSession.IsOpen,
+            command => Application.Current.Dispatcher.BeginInvoke(() => OnWakeWord(command)));
+        ApplyWakeWord();
         AutoStart.Apply(settings.StartWithWindows);
 
         if (firstRunUi && !settings.OnboardingDone)
@@ -47,10 +54,33 @@ public sealed class AppHost : IDisposable
             welcome.ShowDialog();
             settings.OnboardingDone = true;
             SettingsStore.Save(settings);
+            ApplyWakeWord(); // a key may have just been added
             Main.RefreshProvider();
         }
         else if (!startHidden) Main.ShowPanel();
-        else Toast.Show("העוזר פועל ברקע ✦", $"{settings.AssistantHotkey} לפתיחה · {settings.CircleSearchHotkey} להקף וחפש", 5);
+        else Toast.Show($"{settings.AssistantName} פועלת ברקע ✦", WakeWordActive ? $"תגיד \"{settings.WakePhrase}\" או {settings.AssistantHotkey}" : $"{settings.AssistantHotkey} לפתיחה · {settings.CircleSearchHotkey} להקף וחפש", 5);
+    }
+
+    public bool WakeWordActive => _wake?.IsRunning == true;
+
+    /// <summary>Turns "היי שיר" listening on/off according to the settings (needs a provider that can transcribe).</summary>
+    public void ApplyWakeWord()
+    {
+        if (_wake is null) return;
+        var s = Controller.Settings;
+        _wake.Phrase = s.WakePhrase;
+        var shouldRun = s.WakeWordEnabled && Controller.CanTranscribe;
+        if (shouldRun && !_wake.IsRunning) _wake.Start();
+        else if (!shouldRun && _wake.IsRunning) _wake.Stop();
+        Main.RefreshProvider();
+    }
+
+    private void OnWakeWord(string command)
+    {
+        Main.ShowPanel();
+        Chime.Play();
+        if (command.Trim().Length >= 2) _ = Main.SubmitAsync(command.Trim()); // "היי שיר, פתח וורד" — do it right away
+        else _ = Main.ToggleVoiceAsync();                                     // "היי שיר" — then listen for the request
     }
 
     /// <summary>Thread-safe (pure Win32): true when one of this app's windows has focus.</summary>
@@ -130,6 +160,7 @@ public sealed class AppHost : IDisposable
         ApplyShortcuts(showWarnings: true);
         ApplyLongPress();
         AutoStart.Apply(Controller.Settings.StartWithWindows);
+        ApplyWakeWord();
         Main.RefreshProvider();
     }
 
@@ -142,9 +173,10 @@ public sealed class AppHost : IDisposable
 
     public void Dispose()
     {
+        try { _wake?.Dispose(); } catch { }
         try { _longPress?.Dispose(); } catch { }
         try { _hotkeys?.Dispose(); } catch { }
         try { _tray?.Dispose(); } catch { }
-        _longPress = null; _hotkeys = null; _tray = null;
+        _wake = null; _longPress = null; _hotkeys = null; _tray = null;
     }
 }

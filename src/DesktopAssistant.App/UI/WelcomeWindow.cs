@@ -52,9 +52,9 @@ public sealed class WelcomeWindow : Window
             Margin = new Thickness(26, 22, 26, 22),
             Children =
             {
-                new TextBlock { Text = "✦ שלום! אני העוזר האישי שלך", FontSize = 22, FontWeight = FontWeights.SemiBold, Foreground = new SolidColorBrush(Color.FromRgb(32, 33, 36)) },
+                new TextBlock { Text = $"✦ שלום! אני {s.AssistantName}, העוזרת האישית שלך", FontSize = 22, FontWeight = FontWeights.SemiBold, Foreground = new SolidColorBrush(Color.FromRgb(32, 33, 36)) },
                 new TextBlock { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 10, 0, 14), Foreground = Brushes.DimGray, Text =
-                    $"• {s.AssistantHotkey} — לפתוח אותי מכל מקום (או ללחוץ על הסמל ליד השעון)\n• {s.VoiceHotkey} — לדבר איתי\n• {s.CircleSearchHotkey} או לחיצה ארוכה על משטח המגע — להקפיא את המסך ולהקיף משהו לחיפוש/תרגום\n\nכדי שאהיה חכם צריך לחבר מודל AI. בחר ספק והדבק מפתח API:" },
+                    $"• \"{s.WakePhrase}\" — לקרוא לי בקול (אפשר גם: \"{s.WakePhrase}, פתח וורד\")\n• {s.AssistantHotkey} — לפתוח אותי מכל מקום (או ללחוץ על הסמל ליד השעון)\n• {s.VoiceHotkey} — לדבר איתי\n• {s.CircleSearchHotkey} או לחיצה ארוכה על משטח המגע — להקפיא את המסך ולהקיף משהו לחיפוש/תרגום\n\nכדי שאהיה חכם צריך לחבר מודל AI. בחר ספק והדבק מפתח API:" },
                 new TextBlock { Text = "ספק", FontWeight = FontWeights.SemiBold },
                 _provider,
                 new TextBlock { Text = "מפתח API", FontWeight = FontWeights.SemiBold },

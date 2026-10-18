@@ -84,7 +84,7 @@ public sealed class AnthropicModel(ProviderConfig config) : ChatModelBase(config
         ["source"] = new JsonObject { ["type"] = "base64", ["media_type"] = image.MimeType, ["data"] = Convert.ToBase64String(image.Data) }
     };
 
-    public override Task<string> TranscribeAsync(byte[] wav, string languageCode, CancellationToken cancellationToken) =>
+    public override Task<string> TranscribeAsync(byte[] wav, string languageCode, CancellationToken cancellationToken, string? hint = null) =>
         throw new AiException("Claude לא תומך בזיהוי דיבור. כדי לדבר עם העוזר הוסף גם מפתח של Gemini, OpenAI או Groq בהגדרות (הם ישמשו רק לתמלול).");
 
     public override async Task<IReadOnlyList<string>> ListModelsAsync(CancellationToken cancellationToken)

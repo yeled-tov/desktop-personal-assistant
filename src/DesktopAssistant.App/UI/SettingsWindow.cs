@@ -32,6 +32,10 @@ public sealed class SettingsWindow : Window
     private readonly TextBlock _longPressLabel = new() { Margin = new Thickness(8, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
 
     private readonly CheckBox _speak = new() { Content = "הקרא את התשובות בקול" };
+    private readonly CheckBox _wakeEnabled = new() { Content = "האזנה למילת הפעלה — לקרוא לעוזר בקול והוא נפתח לבד" };
+    private readonly TextBox _assistantName = new() { MinWidth = 200, Padding = new Thickness(4) };
+    private readonly TextBox _wakePhrase = new() { MinWidth = 200, Padding = new Thickness(4) };
+    private readonly TextBlock _wakeStatus = new() { TextWrapping = TextWrapping.Wrap, FontSize = 12.5, Margin = new Thickness(0, 4, 0, 8) };
     private readonly CheckBox _autoSend = new() { Content = "שלח אוטומטית אחרי שסיימתי לדבר" };
     private readonly ComboBox _target = new() { IsEditable = true, MinWidth = 200, ItemsSource = new[] { "עברית", "English", "العربية", "Русский", "Français", "Español", "Deutsch", "አማርኛ", "Українська" } };
 
@@ -61,7 +65,7 @@ public sealed class SettingsWindow : Window
         var tabs = new TabControl { Margin = new Thickness(14, 14, 14, 0), Padding = new Thickness(16) };
         tabs.Items.Add(new TabItem { Header = "  בינה מלאכותית  ", Content = Scroll(BuildAiTab()) });
         tabs.Items.Add(new TabItem { Header = "  קיצורים ומחוות  ", Content = Scroll(BuildShortcutsTab()) });
-        tabs.Items.Add(new TabItem { Header = "  קול ותרגום  ", Content = Scroll(BuildVoiceTab()) });
+        tabs.Items.Add(new TabItem { Header = "  קול ומילת הפעלה  ", Content = Scroll(BuildVoiceTab()) });
         tabs.Items.Add(new TabItem { Header = "  כללי וזיכרון  ", Content = Scroll(BuildGeneralTab()) });
 
         var save = new Button { Content = "שמור", Style = (Style)Application.Current.Resources["AccentButton"], MinWidth = 110 };
@@ -124,6 +128,22 @@ public sealed class SettingsWindow : Window
     private UIElement BuildVoiceTab()
     {
         var panel = new StackPanel();
+        panel.Children.Add(new TextBlock { Text = "קריאה בקול", FontWeight = FontWeights.SemiBold, FontSize = 15, Margin = new Thickness(0, 0, 0, 4) });
+        panel.Children.Add(Spaced(_wakeEnabled, 4));
+        panel.Children.Add(Row("שם העוזר", _assistantName));
+        panel.Children.Add(Row("מילת הפעלה", _wakePhrase));
+        panel.Children.Add(_wakeStatus);
+        panel.Children.Add(Note("אומרים את מילת ההפעלה והעוזר נפתח ומקשיב. אפשר גם להמשיך באותו משפט: \"היי שיר, פתח וורד\" — והפעולה מתבצעת מיד.\n" +
+            "פרטיות: המיקרופון מנותח במחשב. רק כשמישהו אומר משפט קצר (עד 6 שניות) הקטע נשלח לתמלול אצל ספק ה-AI כדי לבדוק אם נאמרה מילת ההפעלה; שיחות ארוכות לא נשלחות, ושום הקלטה לא נשמרת. אפשר לכבות גם מהסמל ליד השעון."));
+        string? lastAutoPhrase = null;
+        _assistantName.TextChanged += (_, _) =>
+        {
+            // Keep "היי <name>" in sync while the user hasn't typed a custom phrase.
+            var auto = "היי " + _assistantName.Text.Trim();
+            if (lastAutoPhrase is null || _wakePhrase.Text == lastAutoPhrase || _wakePhrase.Text.Length == 0) _wakePhrase.Text = auto;
+            lastAutoPhrase = auto;
+        };
+        panel.Children.Add(new TextBlock { Text = "דיבור והקראה", FontWeight = FontWeights.SemiBold, FontSize = 15, Margin = new Thickness(0, 14, 0, 4) });
         panel.Children.Add(Spaced(_autoSend));
         panel.Children.Add(Spaced(_speak));
         panel.Children.Add(Note("כדי שההקראה תהיה בעברית: הגדרות Windows ← זמן ושפה ← דיבור ← הוסף קול עברי."));
@@ -160,6 +180,13 @@ public sealed class SettingsWindow : Window
         _longPress.IsChecked = _settings.TouchpadLongPressEnabled;
         _longPressMs.Value = _settings.LongPressMilliseconds;
         _speak.IsChecked = _settings.SpeakReplies;
+        _wakeEnabled.IsChecked = _settings.WakeWordEnabled;
+        _assistantName.Text = _settings.AssistantName;
+        _wakePhrase.Text = _settings.WakePhrase;
+        var canHear = _host.Controller.CanTranscribe;
+        _wakeStatus.Text = !canHear ? "⚠ כדי שהעוזר ישמע אותך צריך מפתח של Gemini, OpenAI או Groq (לשונית 'בינה מלאכותית')."
+            : _host.WakeWordActive ? "✓ מאזין עכשיו." : "כבוי כרגע.";
+        _wakeStatus.Foreground = !canHear ? new SolidColorBrush(Color.FromRgb(197, 34, 31)) : Brushes.DimGray;
         _autoSend.IsChecked = _settings.AutoSendVoice;
         _target.Text = _settings.TranslationTarget;
         _autostart.IsChecked = _settings.StartWithWindows;
@@ -258,6 +285,11 @@ public sealed class SettingsWindow : Window
         foreach (var box in new[] { _hkAssistant, _hkVoice, _hkCircle, _hkTranslate })
             if (box.Text.Length > 0 && !Hotkey.TryParse(box.Text, out _)) { MessageBox.Show(this, $"הקיצור '{box.Text}' לא תקין.", "הגדרות"); return; }
 
+        if (_wakeEnabled.IsChecked == true && _wakePhrase.Text.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length < 2)
+        {
+            MessageBox.Show(this, "מילת הפעלה צריכה להיות לפחות שתי מילים (למשל \"היי שיר\"), אחרת העוזר ייפתח בטעות באמצע שיחות.", "מילת הפעלה");
+            return;
+        }
         _settings.Providers = _providers;
         if (_provider.SelectedItem is ProviderConfig selected) _settings.ActiveProviderId = selected.Id;
         _settings.AssistantHotkey = _hkAssistant.Text; _settings.VoiceHotkey = _hkVoice.Text; _settings.CircleSearchHotkey = _hkCircle.Text; _settings.TranslateHotkey = _hkTranslate.Text;
@@ -265,6 +297,9 @@ public sealed class SettingsWindow : Window
         _settings.TouchpadLongPressEnabled = _longPress.IsChecked == true;
         _settings.LongPressMilliseconds = (int)_longPressMs.Value;
         _settings.SpeakReplies = _speak.IsChecked == true;
+        _settings.WakeWordEnabled = _wakeEnabled.IsChecked == true;
+        _settings.AssistantName = _assistantName.Text.Trim();
+        _settings.WakePhrase = _wakePhrase.Text.Trim();
         _settings.AutoSendVoice = _autoSend.IsChecked == true;
         _settings.TranslationTarget = string.IsNullOrWhiteSpace(_target.Text) ? "עברית" : _target.Text.Trim();
         _settings.StartWithWindows = _autostart.IsChecked == true;

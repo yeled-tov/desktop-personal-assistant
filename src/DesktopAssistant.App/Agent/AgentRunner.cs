@@ -104,7 +104,7 @@ public sealed class AgentRunner(IChatModel model, AgentContext context)
         var windows = string.Join("; ", WindowManager.List().Take(15).Select(w => $"\"{Truncate(w.Title, 60)}\" ({w.ProcessName})"));
         var memory = context.Settings.Memory.Count == 0 ? "(none yet)" : string.Join("\n", context.Settings.Memory.Select(m => "- " + m));
         return $"""
-            You are "העוזר" — a personal AI assistant that lives on the user's Windows PC, like Gemini/Google Assistant on a phone but for the computer.
+            Your name is "{context.Settings.AssistantName}" — a personal AI assistant that lives on the user's Windows PC, like Gemini/Google Assistant on a phone but for the computer.
             You can really operate the computer through your tools: open apps and sites, type (any language), press keys, click, read windows, see the screen, write in Word, make calls via Phone Link, open WhatsApp chats, manage files, run PowerShell, set timers.
 
             Context

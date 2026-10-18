@@ -38,6 +38,11 @@ public sealed class AppSettings
     public int LongPressMilliseconds { get; set; } = 800;
 
     public bool SpeakReplies { get; set; }
+    /// <summary>The assistant's name (used in the wake phrase, greetings and the AI's persona).</summary>
+    public string AssistantName { get; set; } = "שיר";
+    /// <summary>Say this and the assistant opens by itself. Anything said right after it is run as a command.</summary>
+    public string WakePhrase { get; set; } = "היי שיר";
+    public bool WakeWordEnabled { get; set; } = true;
     public bool AutoSendVoice { get; set; } = true;
     public bool ConfirmSensitiveActions { get; set; } = true;
     public int MaxAgentSteps { get; set; } = 30;
@@ -60,6 +65,8 @@ public sealed class AppSettings
         MaxAgentSteps = Math.Clamp(MaxAgentSteps, 5, 80);
         Memory ??= [];
         if (string.IsNullOrWhiteSpace(TranslationTarget)) TranslationTarget = "עברית";
+        if (string.IsNullOrWhiteSpace(AssistantName)) AssistantName = "שיר";
+        if (string.IsNullOrWhiteSpace(WakePhrase)) WakePhrase = "היי " + AssistantName;
     }
 }
 

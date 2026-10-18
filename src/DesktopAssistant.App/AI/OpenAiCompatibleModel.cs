@@ -89,10 +89,10 @@ public sealed class OpenAiCompatibleModel(ProviderConfig config) : ChatModelBase
             yield return new JsonObject { ["role"] = "user", ["content"] = content };
     }
 
-    public override async Task<string> TranscribeAsync(byte[] wav, string languageCode, CancellationToken cancellationToken)
+    public override async Task<string> TranscribeAsync(byte[] wav, string languageCode, CancellationToken cancellationToken, string? hint = null)
     {
         if (!CanTranscribe) throw new AiException($"לא הוגדר מודל זיהוי דיבור עבור {Config.DisplayName}.");
-        using var request = new HttpRequestMessage(HttpMethod.Post, $"{BaseUrl}/audio/transcriptions") { Content = WavForm(wav, Config.TranscriptionModel.Trim(), languageCode) };
+        using var request = new HttpRequestMessage(HttpMethod.Post, $"{BaseUrl}/audio/transcriptions") { Content = WavForm(wav, Config.TranscriptionModel.Trim(), languageCode, hint) };
         Authorize(request);
         var response = await SendJsonAsync(request, cancellationToken);
         return response["text"]?.GetValue<string>()?.Trim() ?? "";

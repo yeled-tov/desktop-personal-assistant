@@ -16,6 +16,38 @@ public sealed class AudioRecorder : IDisposable
 
     public async Task<byte[]> RecordAsync(TimeSpan maxDuration, TimeSpan silenceToStop, CancellationToken cancellationToken, CancellationToken stopToken)
     {
+        var pcm = new MemoryStream();
+        var started = DateTime.UtcNow;
+        var lastVoice = DateTime.UtcNow;
+        var heardVoice = false;
+        var noiseFloor = 0.0;
+        using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, stopToken);
+        try
+        {
+            await CaptureAsync((buffer, count, level) =>
+            {
+                pcm.Write(buffer, 0, count);
+                LevelChanged?.Invoke(Math.Min(1, level * 6));
+                var elapsed = DateTime.UtcNow - started;
+                if (elapsed < TimeSpan.FromMilliseconds(300)) noiseFloor = Math.Max(noiseFloor, level);
+                if (level > Math.Max(0.012, noiseFloor * 2.2)) { heardVoice = true; lastVoice = DateTime.UtcNow; }
+                if (elapsed > maxDuration) return false;
+                if (heardVoice && DateTime.UtcNow - lastVoice > silenceToStop) return false;
+                if (!heardVoice && elapsed > TimeSpan.FromSeconds(8)) return false; // nobody spoke
+                return true;
+            }, linked.Token);
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested) { /* user pressed stop */ }
+        cancellationToken.ThrowIfCancellationRequested();
+        return heardVoice ? ToWav(pcm.ToArray()) : [];
+    }
+
+    /// <summary>
+    /// Streams 16 kHz mono 16-bit microphone audio in 50 ms frames to <paramref name="onFrame"/> (buffer, byte count, RMS level).
+    /// Stops when the callback returns false or the token is cancelled. Several captures can run at once (shared mode).
+    /// </summary>
+    public static async Task CaptureAsync(Func<byte[], int, double, bool> onFrame, CancellationToken cancellationToken)
+    {
         var format = new WaveFormat { wFormatTag = 1, nChannels = 1, nSamplesPerSec = SampleRate, wBitsPerSample = 16, nBlockAlign = 2, nAvgBytesPerSec = SampleRate * 2, cbSize = 0 };
         var result = waveInOpen(out var device, WAVE_MAPPER, ref format, 0, 0, 0);
         if (result != 0) throw new InvalidOperationException(result == 2 ? "לא נמצא מיקרופון. חבר מיקרופון ונסה שוב." : $"לא ניתן לפתוח את המיקרופון (שגיאה {result}). בדוק בהגדרות הפרטיות של Windows שהגישה למיקרופון מותרת לאפליקציות שולחן עבודה.");
@@ -25,7 +57,6 @@ public sealed class AudioRecorder : IDisposable
         var recordedOffset = (int)Marshal.OffsetOf<WaveHeader>(nameof(WaveHeader.dwBytesRecorded));
         var headers = new nint[BufferCount];
         var data = new nint[BufferCount];
-        var pcm = new MemoryStream();
         try
         {
             for (var i = 0; i < BufferCount; i++)
@@ -37,36 +68,19 @@ public sealed class AudioRecorder : IDisposable
                 Check(waveInAddBuffer(device, headers[i], headerSize));
             }
             Check(waveInStart(device));
-
-            var started = DateTime.UtcNow;
-            var lastVoice = DateTime.UtcNow;
-            var heardVoice = false;
-            var noiseFloor = 0.0;
             var next = 0;
             var buffer = new byte[BufferBytes];
-            while (!cancellationToken.IsCancellationRequested && !stopToken.IsCancellationRequested)
+            while (true)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 if ((Marshal.ReadInt32(headers[next], flagsOffset) & WHDR_DONE) == 0) { await Task.Delay(10, CancellationToken.None); continue; }
                 var recorded = Marshal.ReadInt32(headers[next], recordedOffset);
                 Marshal.Copy(data[next], buffer, 0, recorded);
-                pcm.Write(buffer, 0, recorded);
-
-                var level = Rms(buffer, recorded);
-                LevelChanged?.Invoke(Math.Min(1, level * 6));
-                var elapsed = DateTime.UtcNow - started;
-                if (elapsed < TimeSpan.FromMilliseconds(300)) noiseFloor = Math.Max(noiseFloor, level);
-                var threshold = Math.Max(0.012, noiseFloor * 2.2);
-                if (level > threshold) { heardVoice = true; lastVoice = DateTime.UtcNow; }
-
+                var keepGoing = onFrame(buffer, recorded, Rms(buffer, recorded));
                 Check(waveInAddBuffer(device, headers[next], headerSize));
                 next = (next + 1) % BufferCount;
-
-                if (elapsed > maxDuration) break;
-                if (heardVoice && DateTime.UtcNow - lastVoice > silenceToStop) break;
-                if (!heardVoice && elapsed > TimeSpan.FromSeconds(8)) break; // nobody spoke
+                if (!keepGoing) break;
             }
-            cancellationToken.ThrowIfCancellationRequested();
-            if (!heardVoice) return [];
         }
         finally
         {
@@ -79,7 +93,6 @@ public sealed class AudioRecorder : IDisposable
             }
             waveInClose(device);
         }
-        return ToWav(pcm.ToArray());
     }
 
     private static double Rms(byte[] buffer, int count)

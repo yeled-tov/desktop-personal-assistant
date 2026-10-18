@@ -28,6 +28,7 @@ public partial class MainWindow : Window
 
     public bool IsBusy => _run is not null;
     public bool IsRecording => _recordCancel is not null;
+    public bool IsSpeaking => _speech.IsSpeaking;
 
     public MainWindow(AppHost host)
     {
@@ -84,7 +85,10 @@ public partial class MainWindow : Window
     public void RefreshProvider()
     {
         var c = _host.Controller;
-        ProviderText.Text = c.IsConfigured ? $"{c.Provider.DisplayName} · {c.Provider.Model}" : "לא מחובר ל-AI — לחץ ⚙ כדי לחבר";
+        TitleText.Text = c.Settings.AssistantName;
+        Title = c.Settings.AssistantName;
+        var wake = _host.WakeWordActive ? $"  ·  👂 \"{c.Settings.WakePhrase}\"" : "";
+        ProviderText.Text = c.IsConfigured ? $"{c.Provider.DisplayName} · {c.Provider.Model}{wake}" : "לא מחובר ל-AI — לחץ ⚙ כדי לחבר";
     }
 
     // ------------- input -------------
@@ -302,7 +306,7 @@ public partial class MainWindow : Window
         var keys = _host.Controller.Settings;
         panel.Children.Add(new TextBlock
         {
-            Text = $"{keys.AssistantHotkey} — פתיחה  ·  {keys.VoiceHotkey} — דיבור\n{keys.CircleSearchHotkey} או לחיצה ארוכה על משטח המגע — הקף וחפש",
+            Text = $"{(keys.WakeWordEnabled ? $"\"{keys.WakePhrase}\" או " : "")}{keys.AssistantHotkey} — פתיחה  ·  {keys.VoiceHotkey} — דיבור\n{keys.CircleSearchHotkey} או לחיצה ארוכה על משטח המגע — הקף וחפש",
             Foreground = Theme.Res("TextSecondary"), FontSize = 11.5, Margin = new Thickness(0, 14, 0, 0), TextWrapping = TextWrapping.Wrap, Opacity = 0.8
         });
         Messages.Children.Add(panel);

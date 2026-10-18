@@ -113,7 +113,7 @@ public sealed class GeminiModel(ProviderConfig config) : ChatModelBase(config)
         return result;
     }
 
-    public override async Task<string> TranscribeAsync(byte[] wav, string languageCode, CancellationToken cancellationToken)
+    public override async Task<string> TranscribeAsync(byte[] wav, string languageCode, CancellationToken cancellationToken, string? hint = null)
     {
         var language = languageCode == "he" ? "Hebrew (the speaker may mix in English words)" : languageCode;
         var body = new JsonObject
@@ -123,7 +123,7 @@ public sealed class GeminiModel(ProviderConfig config) : ChatModelBase(config)
                 ["role"] = "user",
                 ["parts"] = new JsonArray(
                     InlineData("audio/wav", wav),
-                    new JsonObject { ["text"] = $"Transcribe this recording exactly as spoken. Expected language: {language}. Output only the transcript text, no quotes, no comments. If there is no speech, output nothing." })
+                    new JsonObject { ["text"] = $"Transcribe this recording exactly as spoken. Expected language: {language}. Output only the transcript text, no quotes, no comments. If there is no speech, output nothing.{(string.IsNullOrWhiteSpace(hint) ? "" : " Context: " + hint)}" })
             }),
             ["generationConfig"] = new JsonObject { ["maxOutputTokens"] = 2048 }
         };

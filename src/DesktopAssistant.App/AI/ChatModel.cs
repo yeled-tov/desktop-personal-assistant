@@ -46,7 +46,7 @@ public interface IChatModel
     ProviderConfig Config { get; }
     Task<ModelReply> CompleteAsync(string system, IReadOnlyList<ChatMessage> messages, IReadOnlyList<ToolSpec> tools, ModelOptions options, CancellationToken cancellationToken);
     bool CanTranscribe { get; }
-    Task<string> TranscribeAsync(byte[] wav, string languageCode, CancellationToken cancellationToken);
+    Task<string> TranscribeAsync(byte[] wav, string languageCode, CancellationToken cancellationToken, string? hint = null);
     Task<IReadOnlyList<string>> ListModelsAsync(CancellationToken cancellationToken);
 }
 
@@ -60,7 +60,7 @@ public abstract class ChatModelBase(ProviderConfig config) : IChatModel
 
     public abstract Task<ModelReply> CompleteAsync(string system, IReadOnlyList<ChatMessage> messages, IReadOnlyList<ToolSpec> tools, ModelOptions options, CancellationToken cancellationToken);
     public abstract bool CanTranscribe { get; }
-    public abstract Task<string> TranscribeAsync(byte[] wav, string languageCode, CancellationToken cancellationToken);
+    public abstract Task<string> TranscribeAsync(byte[] wav, string languageCode, CancellationToken cancellationToken, string? hint = null);
     public abstract Task<IReadOnlyList<string>> ListModelsAsync(CancellationToken cancellationToken);
 
     protected string BaseUrl => Config.BaseUrl.TrimEnd('/');
@@ -119,7 +119,7 @@ public abstract class ChatModelBase(ProviderConfig config) : IChatModel
 
     protected static StringContent JsonContent(JsonNode node) => new(node.ToJsonString(), Encoding.UTF8, "application/json");
 
-    protected static MultipartFormDataContent WavForm(byte[] wav, string model, string languageCode)
+    protected static MultipartFormDataContent WavForm(byte[] wav, string model, string languageCode, string? hint = null)
     {
         var form = new MultipartFormDataContent();
         var file = new ByteArrayContent(wav);
@@ -128,6 +128,7 @@ public abstract class ChatModelBase(ProviderConfig config) : IChatModel
         form.Add(new StringContent(model), "model");
         if (!string.IsNullOrWhiteSpace(languageCode)) form.Add(new StringContent(languageCode), "language");
         form.Add(new StringContent("json"), "response_format");
+        if (!string.IsNullOrWhiteSpace(hint)) form.Add(new StringContent(hint), "prompt");
         return form;
     }
 

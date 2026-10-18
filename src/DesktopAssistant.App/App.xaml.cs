@@ -8,6 +8,7 @@ using DesktopAssistant.Input;
 using DesktopAssistant.Overlay;
 using DesktopAssistant.Settings;
 using DesktopAssistant.UI;
+using DesktopAssistant.Voice;
 
 namespace DesktopAssistant;
 
@@ -88,6 +89,10 @@ public partial class App : Application
             Step("all providers constructible");
             if (!Hotkey.TryParse("Ctrl+Alt+Space", out _)) throw new InvalidOperationException("hotkey parser");
             Step("hotkey parser");
+            if (!WakePhraseMatcher.TryMatch("היי, שיר! פתח וורד", "היי שיר", out var wakeCommand) || wakeCommand != "פתח וורד") throw new InvalidOperationException("wake phrase matcher");
+            var listener = new WakeWordListener((_, _, _) => Task.FromResult(""), () => false, _ => { });
+            listener.Start(); await Task.Delay(1500); var wakeStatus = listener.Status; listener.Stop();
+            Step($"wake-word listener ran ({wakeStatus})");
 
             var welcome = new WelcomeWindow(host); welcome.Show(); await Task.Delay(300); Snap(welcome, "welcome"); welcome.Close(); Step("welcome window");
             host.OpenSettings(); await Task.Delay(500);

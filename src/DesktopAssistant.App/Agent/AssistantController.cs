@@ -58,7 +58,7 @@ public sealed class AssistantController
     }
 
     /// <summary>Speech-to-text with the active provider, or any configured provider that can transcribe.</summary>
-    public async Task<string> TranscribeAsync(byte[] wav, CancellationToken cancellationToken)
+    public async Task<string> TranscribeAsync(byte[] wav, CancellationToken cancellationToken, string? hint = null)
     {
         IChatModel? model = null;
         if (IsConfigured)
@@ -69,8 +69,11 @@ public sealed class AssistantController
         model ??= FirstConfiguredModel(m => m.CanTranscribe);
         if (model is null) throw new AiException("כדי לדבר עם העוזר צריך מפתח של Gemini, OpenAI או Groq (הם יודעים לתמלל עברית). אפשר להוסיף בהגדרות.");
         var language = Settings.UiLanguage == "en" ? "en" : "he";
-        return await model.TranscribeAsync(wav, language, cancellationToken);
+        return await model.TranscribeAsync(wav, language, cancellationToken, hint);
     }
+
+    /// <summary>True when some configured provider can turn speech into text (needed for voice and the wake word).</summary>
+    public bool CanTranscribe => (IsConfigured && ChatModelFactory.Create(Provider).CanTranscribe) || FirstConfiguredModel(m => m.CanTranscribe) is not null;
 
     /// <summary>Basic commands that work with no AI connected.</summary>
     private static async Task<string?> TryOfflineAsync(string text, CancellationToken cancellationToken)
