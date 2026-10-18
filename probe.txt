@@ -1,0 +1,118 @@
+== llama.cpp latest
+v0.7.0
+== whisper.cpp latest
+v1.9.5
+== HF Qwen/Qwen3-VL-4B-Instruct-GGUF
+.gitattributes 1863
+Qwen3VL-4B-Instruct-F16.gguf 8051286144
+Qwen3VL-4B-Instruct-Q4_K_M.gguf 2497281664
+Qwen3VL-4B-Instruct-Q8_0.gguf 4280406144
+README.md 5789
+mmproj-Qwen3VL-4B-Instruct-F16.gguf 836180256
+mmproj-Qwen3VL-4B-Instruct-Q8_0.gguf 453974304
+== HF Qwen/Qwen3-VL-2B-Instruct-GGUF
+.gitattributes 1863
+Qwen3VL-2B-Instruct-F16.gguf 3447350304
+Qwen3VL-2B-Instruct-Q4_K_M.gguf 1107409952
+Qwen3VL-2B-Instruct-Q8_0.gguf 1834427424
+README.md 7855
+mmproj-Qwen3VL-2B-Instruct-F16.gguf 819394848
+mmproj-Qwen3VL-2B-Instruct-Q8_0.gguf 445053216
+== HF ggml-org/gemma-3-4b-it-GGUF
+.gitattributes 1817
+README.md 21856
+gemma-3-4b-it-Q4_K_M.gguf 2489757856
+gemma-3-4b-it-Q8_0.gguf 4130226336
+gemma-3-4b-it-f16.gguf 7767474336
+mmproj-model-f16.gguf 851251104
+== HF ggml-org/Qwen3-VL-4B-Instruct-GGUF
+ERR 'str' object has no attribute 'get'
+== HF unsloth/gemma-3n-E4B-it-GGUF
+.gitattributes 3326
+README.md 26739
+gemma-3n-E4B-it-F16.gguf 13740103552
+gemma-3n-E4B-it-IQ4_NL.gguf 4391983232
+gemma-3n-E4B-it-IQ4_XS.gguf 4271954048
+gemma-3n-E4B-it-Q2_K.gguf 3190380672
+gemma-3n-E4B-it-Q2_K_L.gguf 3190380672
+gemma-3n-E4B-it-Q3_K_M.gguf 3689945216
+gemma-3n-E4B-it-Q3_K_S.gguf 3500947584
+gemma-3n-E4B-it-Q4_0.gguf 4395784320
+gemma-3n-E4B-it-Q4_1.gguf 4632828032
+gemma-3n-E4B-it-Q4_K_M.gguf 4539054208
+gemma-3n-E4B-it-Q4_K_S.gguf 4404697216
+gemma-3n-E4B-it-Q5_K_M.gguf 5023496320
+gemma-3n-E4B-it-Q5_K_S.gguf 4945369216
+gemma-3n-E4B-it-Q6_K.gguf 6272219264
+gemma-3n-E4B-it-Q8_0.gguf 7353292928
+gemma-3n-E4B-it-UD-IQ2_M.gguf 3105929344
+gemma-3n-E4B-it-UD-IQ2_XXS.gguf 2830964864
+gemma-3n-E4B-it-UD-IQ3_XXS.gguf 3349244032
+gemma-3n-E4B-it-UD-Q2_K_XL.gguf 3661842560
+gemma-3n-E4B-it-UD-Q3_K_XL.gguf 4127762560
+gemma-3n-E4B-it-UD-Q4_K_XL.gguf 5385042048
+gemma-3n-E4B-it-UD-Q5_K_XL.gguf 5857728640
+gemma-3n-E4B-it-UD-Q6_K_XL.gguf 6618101888
+gemma-3n-E4B-it-UD-Q8_K_XL.gguf 10589460608
+imatrix_unsloth.dat 4624967
+params 174
+template 358
+== HF ggerganov/whisper.cpp
+.gitattributes 1477
+README.md 3196
+ggml-base-encoder.mlmodelc.zip 37922638
+ggml-base-q5_1.bin 59707625
+ggml-base-q8_0.bin 81768585
+ggml-base.bin 147951465
+ggml-base.en-encoder.mlmodelc.zip 37950917
+ggml-base.en-q5_1.bin 59721011
+ggml-base.en-q8_0.bin 81781811
+ggml-base.en.bin 147964211
+ggml-large-v1-encoder.mlmodelc.zip 1177529527
+ggml-large-v1.bin 3094623691
+ggml-large-v2-encoder.mlmodelc.zip 1174643458
+ggml-large-v2-q5_0.bin 1080732091
+ggml-large-v2-q8_0.bin 1656129691
+ggml-large-v2.bin 3094623691
+ggml-large-v3-encoder.mlmodelc.zip 1175711232
+ggml-large-v3-q5_0.bin 1081140203
+ggml-large-v3-turbo-encoder.mlmodelc.zip 1173393014
+ggml-large-v3-turbo-q5_0.bin 574041195
+ggml-large-v3-turbo-q8_0.bin 874188075
+ggml-large-v3-turbo.bin 1624555275
+ggml-large-v3.bin 3095033483
+ggml-medium-encoder.mlmodelc.zip 567829413
+ggml-medium-q5_0.bin 539212467
+ggml-medium-q8_0.bin 823369779
+ggml-medium.bin 1533763059
+ggml-medium.en-encoder.mlmodelc.zip 566993085
+ggml-medium.en-q5_0.bin 539225533
+ggml-medium.en-q8_0.bin 823382461
+ggml-medium.en.bin 1533774781
+ggml-small-encoder.mlmodelc.zip 163083239
+ggml-small-q5_1.bin 190085487
+ggml-small-q8_0.bin 264464607
+ggml-small.bin 487601967
+ggml-small.en-encoder.mlmodelc.zip 162952446
+ggml-small.en-q5_1.bin 190098681
+ggml-small.en-q8_0.bin 264477561
+ggml-small.en.bin 487614201
+ggml-tiny-encoder.mlmodelc.zip 15037446
+ggml-tiny-q5_1.bin 32152673
+ggml-tiny-q8_0.bin 43537433
+ggml-tiny.bin 77691713
+ggml-tiny.en-encoder.mlmodelc.zip 15034655
+ggml-tiny.en-q5_1.bin 32166155
+ggml-tiny.en-q8_0.bin 43550795
+ggml-tiny.en.bin 77704715
+== HF ivrit-ai/whisper-large-v3-turbo-ggml
+.gitattributes 1519
+README.md 215
+ggml-model.bin 1624555275
+== HF ivrit-ai/whisper-large-v3-ggml
+.gitattributes 1519
+README.md 412
+ggml-model.bin 3095033483
+== whisper zip listing
+== llama zip listing
+
