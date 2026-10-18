@@ -1,40 +1,38 @@
-name: Diagnose startup
+name: Dev packs
 'on':
   push:
     branches: [diag/startup]
 permissions:
   contents: write
 jobs:
-  diag:
-    runs-on: windows-2025
-    timeout-minutes: 15
+  packs:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
-      - name: Build and run
-        shell: pwsh
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Download packs
         run: |
-          Start-Transcript -Path diag-output.txt
-          dotnet publish src/DesktopAssistant.App/DesktopAssistant.App.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o app | Select-Object -Last 3
-          Get-ChildItem app | Format-Table Name, Length
-          $p = Start-Process -FilePath app\DesktopAssistant.exe -PassThru
-          Start-Sleep -Seconds 20
-          Write-Host "HasExited: $($p.HasExited)  ExitCode: $(if($p.HasExited){$p.ExitCode})"
-          Get-Process DesktopAssistant -ErrorAction SilentlyContinue | Format-Table Id, MainWindowTitle, Responding
-          $log = Join-Path $env:LOCALAPPDATA 'DesktopAssistant\startup.log'
-          if (Test-Path $log) { Write-Host '--- startup.log ---'; Get-Content $log -Raw }
-          $d = Join-Path $env:LOCALAPPDATA 'DesktopAssistant\diag.log'; if (Test-Path $d) { Write-Host '--- diag.log ---'; Get-Content $d -Raw }
-          Write-Host '--- Application event log (.NET Runtime / Application Error) ---'
-          Get-WinEvent -FilterHashtable @{LogName='Application'; StartTime=(Get-Date).AddMinutes(-5)} -ErrorAction SilentlyContinue | Where-Object { $_.ProviderName -in '.NET Runtime','Application Error','Windows Error Reporting' } | ForEach-Object { "[$($_.ProviderName)] $($_.Message)" }
-          Stop-Process -Name DesktopAssistant -Force -ErrorAction SilentlyContinue
-          Stop-Transcript
-      - name: Save output to branch
-        if: always()
-        shell: pwsh
-        run: |
+          mkdir -p dl && cd dl
+          cat > p.csproj <<'X'
+          <Project Sdk="Microsoft.NET.Sdk">
+            <PropertyGroup><TargetFramework>net10.0</TargetFramework><NuGetAudit>false</NuGetAudit></PropertyGroup>
+            <ItemGroup>
+              <PackageDownload Include="Microsoft.WindowsDesktop.App.Ref" Version="[10.0.12]" />
+              <PackageDownload Include="Microsoft.NETCore.App.Host.win-x64" Version="[10.0.12]" />
+              <PackageDownload Include="Microsoft.Windows.SDK.NET.Ref" Version="[10.0.19041.57]" />
+            </ItemGroup>
+          </Project>
+          X
+          dotnet restore p.csproj --packages ../pk
+          cd ..
+          tar czf devpacks.tgz -C pk microsoft.windowsdesktop.app.ref microsoft.netcore.app.host.win-x64 microsoft.windows.sdk.net.ref
+          ls -la devpacks.tgz
+          split -b 45m devpacks.tgz devpacks.part.
           git config user.name ci; git config user.email ci@example.com
-          git add diag-output.txt; git commit -m "diag output [skip ci]"; git push
+          git checkout --orphan devpacks
+          git rm -rfq --cached .
+          git add devpacks.part.*
+          git commit -qm devpacks
+          git push -f origin devpacks
