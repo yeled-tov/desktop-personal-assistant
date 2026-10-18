@@ -1,0 +1,44 @@
+**********************
+PowerShell transcript start
+Start time: 20261018112104
+Username: runnervm0xl3a\runneradmin
+RunAs User: runnervm0xl3a\runneradmin
+Configuration Name: 
+Machine: runnervm0xl3a (Microsoft Windows NT 10.0.26100.0)
+Host Application: C:\Program Files\PowerShell\7\pwsh.dll -command . 'D:\a\_temp\7e4236c3-d381-4dfe-8f63-3c3fc15dfbc4.ps1'
+Process ID: 1808
+PSVersion: 7.6.6
+PSEdition: Core
+GitCommitId: 7.6.6
+OS: Microsoft Windows 10.0.26100
+Platform: Win32NT
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1, 6.0, 7.0
+PSRemotingProtocolVersion: 2.4
+SerializationVersion: 1.1.0.1
+WSManStackVersion: 3.0
+**********************
+Transcript started, output file is diag-output.txt
+CSC : warning WFO0003: Remove high DPI settings from D:\a\desktop-personal-assistant\desktop-personal-assistant\src\DesktopAssistant.App\app.manifest and configure via Application.SetHighDpiMode API or 'ApplicationHighDpiMode' project property (https://aka.ms/winforms-warnings/wfo0003) [D:\a\desktop-personal-assistant\desktop-personal-assistant\src\DesktopAssistant.App\DesktopAssistant.App.csproj]
+  DesktopAssistant.App -> D:\a\desktop-personal-assistant\desktop-personal-assistant\src\DesktopAssistant.App\bin\Release\net10.0-windows\win-x64\DesktopAssistant.dll
+  DesktopAssistant.App -> D:\a\desktop-personal-assistant\desktop-personal-assistant\app\
+
+Name                    Length
+----                    ------
+DesktopAssistant.exe 173196390
+DesktopAssistant.pdb     49272
+
+HasExited: False  ExitCode:
+
+  Id MainWindowTitle Responding
+  -- --------------- ----------
+3696 עוזר אישי למחשב       True
+
+--- diag.log ---
+11:22:01.087 OnStartup
+11:22:01.102 services
+11:22:01.146 window
+--- Application event log (.NET Runtime / Application Error) ---
+**********************
+PowerShell transcript end
+End time: 20261018112221
+**********************
