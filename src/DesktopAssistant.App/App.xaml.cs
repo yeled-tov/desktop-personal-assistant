@@ -17,15 +17,21 @@ public partial class App : System.Windows.Application
 
     protected override void OnStartup(StartupEventArgs e)
     {
+        var dlog = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "DesktopAssistant", "diag.log");
+        Directory.CreateDirectory(Path.GetDirectoryName(dlog)!);
+        void L(string m) { try { File.AppendAllText(dlog, DateTime.Now.ToString("HH:mm:ss.fff ") + m + Environment.NewLine); } catch { } }
+        AppDomain.CurrentDomain.FirstChanceException += (_, a) => L("FIRST-CHANCE: " + a.Exception.GetType().FullName + ": " + a.Exception.Message + "\n" + Environment.StackTrace);
+        AppDomain.CurrentDomain.UnhandledException += (_, a) => L("UNHANDLED: " + a.ExceptionObject);
+        L("OnStartup");
         base.OnStartup(e);
         DispatcherUnhandledException += OnDispatcherUnhandledException;
 
         try
         {
-            Services = new AppServices();
+            L("services"); Services = new AppServices(); L("window");
             var window = new MainWindow();
             MainWindow = window;
-            window.Show();
+            window.Show(); L("shown");
         }
         catch (Exception ex)
         {
