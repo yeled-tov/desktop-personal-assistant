@@ -3,17 +3,19 @@ name: Diagnose startup
   push:
     branches: [diag/startup]
 permissions:
-  contents: read
+  contents: write
 jobs:
   diag:
     runs-on: windows-2025
     timeout-minutes: 15
     steps:
+      - uses: actions/checkout@v4
       - name: Download latest release and run it
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          Start-Transcript -Path diag-output.txt
           $tag = gh release list -R $env:GITHUB_REPOSITORY -L 1 --json tagName --jq '.[0].tagName'
           Write-Host "Release: $tag"
           gh release download $tag -R $env:GITHUB_REPOSITORY -p 'DesktopAssistant-Portable-Windows-x64.zip' -D dl
@@ -28,3 +30,10 @@ jobs:
           Write-Host '--- Application event log (.NET Runtime / Application Error) ---'
           Get-WinEvent -FilterHashtable @{LogName='Application'; StartTime=(Get-Date).AddMinutes(-5)} -ErrorAction SilentlyContinue | Where-Object { $_.ProviderName -in '.NET Runtime','Application Error','Windows Error Reporting' } | ForEach-Object { "[$($_.ProviderName)] $($_.Message)" }
           Stop-Process -Name DesktopAssistant -Force -ErrorAction SilentlyContinue
+          Stop-Transcript
+      - name: Save output to branch
+        if: always()
+        shell: pwsh
+        run: |
+          git config user.name ci; git config user.email ci@example.com
+          git add diag-output.txt; git commit -m "diag output [skip ci]"; git push
