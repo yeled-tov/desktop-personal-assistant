@@ -1,0 +1,30 @@
+name: Diagnose startup
+'on':
+  push:
+    branches: [diag/startup]
+permissions:
+  contents: read
+jobs:
+  diag:
+    runs-on: windows-2025
+    timeout-minutes: 15
+    steps:
+      - name: Download latest release and run it
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = gh release list -R $env:GITHUB_REPOSITORY -L 1 --json tagName --jq '.[0].tagName'
+          Write-Host "Release: $tag"
+          gh release download $tag -R $env:GITHUB_REPOSITORY -p 'DesktopAssistant-Portable-Windows-x64.zip' -D dl
+          Expand-Archive dl\DesktopAssistant-Portable-Windows-x64.zip -DestinationPath app
+          Get-ChildItem app | Format-Table Name, Length
+          $p = Start-Process -FilePath app\DesktopAssistant.exe -PassThru
+          Start-Sleep -Seconds 20
+          Write-Host "HasExited: $($p.HasExited)  ExitCode: $(if($p.HasExited){$p.ExitCode})"
+          Get-Process DesktopAssistant -ErrorAction SilentlyContinue | Format-Table Id, MainWindowTitle, Responding
+          $log = Join-Path $env:LOCALAPPDATA 'DesktopAssistant\startup.log'
+          if (Test-Path $log) { Write-Host '--- startup.log ---'; Get-Content $log -Raw }
+          Write-Host '--- Application event log (.NET Runtime / Application Error) ---'
+          Get-WinEvent -FilterHashtable @{LogName='Application'; StartTime=(Get-Date).AddMinutes(-5)} -ErrorAction SilentlyContinue | Where-Object { $_.ProviderName -in '.NET Runtime','Application Error','Windows Error Reporting' } | ForEach-Object { "[$($_.ProviderName)] $($_.Message)" }
+          Stop-Process -Name DesktopAssistant -Force -ErrorAction SilentlyContinue
