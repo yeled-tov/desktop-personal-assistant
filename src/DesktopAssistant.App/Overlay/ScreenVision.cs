@@ -88,29 +88,47 @@ public static class ScreenVision
         lines = lines.Where(l => l.Text.Count(char.IsLetter) >= 2 && !(targetIsHebrew && l.Text.Any(c => c >= 'א' && c <= 'ת'))).Take(120).ToList();
         if (lines.Count == 0) return [];
         var results = new List<TranslatedRegion>();
-        var cache = new Dictionary<string, string>();
-        foreach (var chunk in lines.DistinctBy(l => l.Text).Chunk(20))
-        {
-            var input = new System.Text.Json.Nodes.JsonArray(chunk.Select(l => (System.Text.Json.Nodes.JsonNode?)l.Text).ToArray());
-            var prompt = $$"""
-                Translate each string in this JSON array to {{targetLanguage}}. Keep the same order and count. UI labels stay short.
-                If a string is already in {{targetLanguage}} or is only numbers/symbols, copy it unchanged.
-                Return JSON only: {"t":["...", "..."]}
-                {{input.ToJsonString()}}
-                """;
-            // A tight output budget keeps a small local model from rambling (and the screen from waiting).
-            var budget = 80 + chunk.Sum(l => l.Text.Length) * 2;
-            var reply = await model.CompleteAsync("", [ChatMessage.User(prompt)], [], new ModelOptions(JsonOutput: true, MaxOutputTokens: Math.Min(3000, budget)), cancellationToken);
-            var translated = ParseJson(reply.Text)?["t"] as JsonArray;
-            for (var i = 0; i < chunk.Length; i++)
-            {
-                var text = translated is not null && i < translated.Count ? translated[i]?.ToString() ?? "" : "";
-                if (text.Length > 0 && text != chunk[i].Text) cache[chunk[i].Text] = text;
-            }
-        }
+        var cache = await TranslateLinesAsync(model, lines.Select(l => l.Text), targetLanguage, cancellationToken);
         foreach (var line in lines)
             if (cache.TryGetValue(line.Text, out var text)) results.Add(new TranslatedRegion(line.Text, text, line.Left, line.Top, line.Right, line.Bottom));
         return results;
+    }
+
+    /// <summary>Translates short text lines with a plain numbered list (works well even with small local models).</summary>
+    public static async Task<Dictionary<string, string>> TranslateLinesAsync(IChatModel model, IEnumerable<string> texts, string targetLanguage, CancellationToken cancellationToken)
+    {
+        var cache = new Dictionary<string, string>();
+        if (targetLanguage.Contains("עברית")) targetLanguage = "Hebrew"; // small models follow English instructions better
+        foreach (var chunk in texts.Distinct().Take(60).Chunk(12))
+        {
+            var numbered = string.Join("\n", chunk.Select((t, i) => $"{i + 1}. {t}"));
+            var prompt = $"Translate these {chunk.Length} numbered lines to {targetLanguage}. " +
+                         $"Answer with exactly {chunk.Length} numbered lines in the same order (\"1. ...\"), translation only, no notes.\n\n{numbered}";
+            var budget = 60 + chunk.Sum(t => t.Length) * 3;
+            var reply = await model.CompleteAsync("You are a precise translator.", [ChatMessage.User(prompt)], [], new ModelOptions(MaxOutputTokens: Math.Min(1500, budget)), cancellationToken);
+            var answers = ParseNumbered(reply.Text, chunk.Length);
+            if (answers.All(x => x.Length == 0)) AppLog.Warn("Translate lines: unparsed reply: " + reply.Text[..Math.Min(300, reply.Text.Length)]);
+            for (var i = 0; i < chunk.Length; i++)
+                if (answers[i].Length > 0 && answers[i] != chunk[i]) cache[chunk[i]] = answers[i];
+        }
+        return cache;
+    }
+
+    private static string[] ParseNumbered(string text, int count)
+    {
+        var result = Enumerable.Repeat("", count).ToArray();
+        var plain = new List<string>();
+        foreach (var raw in ChatModelBase.StripCodeFence(text).Split('\n'))
+        {
+            var line = raw.Trim();
+            if (line.Length == 0) continue;
+            var m = System.Text.RegularExpressions.Regex.Match(line, @"^\(?(\d{1,3})[\.\)\:\-]\s*(.+)$");
+            if (m.Success && int.TryParse(m.Groups[1].Value, out var n) && n >= 1 && n <= count) result[n - 1] = m.Groups[2].Value.Trim().Trim('"');
+            else plain.Add(line);
+        }
+        // Model dropped the numbers but kept one line per item.
+        if (result.All(r => r.Length == 0) && plain.Count == count) return plain.ToArray();
+        return result;
     }
 
     private sealed record OcrLine(string Text, double Left, double Top, double Right, double Bottom);

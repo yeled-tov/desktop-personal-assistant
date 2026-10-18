@@ -83,6 +83,12 @@ internal static class OfflineSmokeTest
             Step($"vision: \"{reply.Text}\"");
             if (string.IsNullOrWhiteSpace(reply.Text)) throw new InvalidOperationException("empty vision answer");
 
+            // Text translation (the part of screen translation the brain does)
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            var words = await ScreenVision.TranslateLinesAsync(model, ["Open file", "Settings", "Close window", "Good morning"], "Hebrew", cts.Token);
+            Step($"translate lines ({sw.Elapsed.TotalSeconds:0}s): " + string.Join(" | ", words.Select(kv => kv.Key + " → " + kv.Value)));
+            if (words.Count < 2) throw new InvalidOperationException("line translation returned too little");
+
             // Offline screen translation (Windows OCR + local brain)
             var monitor = ScreenCapture.CaptureMonitors()[0];
             var regions = await ScreenVision.TranslateAsync(model, monitor.Image, "עברית", cts.Token);
