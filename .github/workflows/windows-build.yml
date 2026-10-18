@@ -23,13 +23,11 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
-      - name: Locate Inno Setup
+      - name: Make sure NSIS is available
         shell: pwsh
         run: |
-          $compiler = @('C:\Program Files (x86)\Inno Setup 6\ISCC.exe','C:\Program Files\Inno Setup 6\ISCC.exe','C:\Program Files (x86)\Inno Setup 7\ISCC.exe','C:\Program Files\Inno Setup 7\ISCC.exe') |
-            Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
-          if (-not $compiler) { choco install innosetup -y --no-progress | Out-Null; $compiler = 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe' }
-          Add-Content -Path $env:GITHUB_PATH -Value (Split-Path -Parent $compiler)
+          if (-not (Get-Command makensis -ErrorAction SilentlyContinue) -and -not (Test-Path "${env:ProgramFiles(x86)}\NSIS\makensis.exe")) { choco install nsis -y --no-progress | Out-Null }
+          if (Test-Path "${env:ProgramFiles(x86)}\NSIS") { Add-Content -Path $env:GITHUB_PATH -Value "${env:ProgramFiles(x86)}\NSIS" }
 
       - name: Build, launch-test (smoke test on real Windows) and package
         shell: pwsh

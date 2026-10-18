@@ -38,11 +38,14 @@ if (-not $SkipSmokeTest) {
 }
 
 if (-not $SkipInstaller) {
-  $iscc = Get-Command iscc -ErrorAction SilentlyContinue
-  if (-not $iscc) { throw 'לא נמצא Inno Setup (ISCC). התקן מ-https://jrsoftware.org/isinfo.php או הרץ עם -SkipInstaller.' }
-  $iss = Join-Path $root 'installer\DesktopAssistant.iss'
-  iscc "/DAppVersion=$Version" "/DSourceDir=$publishDir" "/DOutputDir=$installerDir" $iss
-  if ($LASTEXITCODE -ne 0) { throw 'יצירת המתקין נכשלה.' }
+  $makensis = (Get-Command makensis -ErrorAction SilentlyContinue).Source
+  if (-not $makensis) { $makensis = @("${env:ProgramFiles(x86)}\NSIS\makensis.exe", "$env:ProgramFiles\NSIS\makensis.exe") | Where-Object { Test-Path $_ } | Select-Object -First 1 }
+  if (-not $makensis) { throw 'לא נמצא NSIS (makensis). התקן מ-https://nsis.sourceforge.io או: winget install NSIS.NSIS — או הרץ עם -SkipInstaller.' }
+  Push-Location (Join-Path $root 'installer')
+  try {
+    & $makensis "-DVERSION=$Version" "-DSOURCE_DIR=$publishDir" "-DOUT_FILE=$(Join-Path $installerDir 'DesktopAssistant-Setup.exe')" 'DesktopAssistant.nsi'
+    if ($LASTEXITCODE -ne 0) { throw 'יצירת המתקין נכשלה.' }
+  } finally { Pop-Location }
   Write-Host "Installer: $(Join-Path $installerDir 'DesktopAssistant-Setup.exe')" -ForegroundColor Green
 }
 Write-Host "Portable EXE: $exe"

@@ -21,7 +21,7 @@ public sealed class WelcomeWindow : Window
         Title = "ברוכים הבאים";
         Width = 520; SizeToContent = SizeToContent.Height; ResizeMode = ResizeMode.NoResize;
         WindowStartupLocation = WindowStartupLocation.CenterScreen; FlowDirection = FlowDirection.RightToLeft; FontFamily = Theme.Font; FontSize = 14;
-        Background = Brushes.White; Topmost = true;
+        Background = Brushes.White; Topmost = true; Icon = Theme.AppIcon;
 
         var settings = host.Controller.Settings;
         _provider.ItemsSource = settings.Providers.Where(p => p.Id != "custom").ToList();

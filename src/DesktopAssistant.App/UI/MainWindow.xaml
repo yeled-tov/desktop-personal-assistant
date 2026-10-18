@@ -21,7 +21,7 @@
       <!-- Header (drag to move) -->
       <DockPanel x:Name="Header" Grid.Row="0" Background="Transparent" Margin="0,0,0,6">
         <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
-          <Button x:Name="NewChatButton" Style="{StaticResource IconButton}" Content="＋" ToolTip="שיחה חדשה" Click="NewChat_Click" />
+          <Button x:Name="NewChatButton" Style="{StaticResource IconButton}" Content="+" FontSize="20" ToolTip="שיחה חדשה" Click="NewChat_Click" />
           <Button x:Name="SettingsButton" Style="{StaticResource IconButton}" Content="⚙" ToolTip="הגדרות" Click="Settings_Click" />
           <Button x:Name="CloseButton" Style="{StaticResource IconButton}" Content="✕" ToolTip="הסתר (Esc)" Click="Close_Click" />
         </StackPanel>

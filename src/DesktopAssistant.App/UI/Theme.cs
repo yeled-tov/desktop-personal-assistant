@@ -10,6 +10,15 @@ public static class Theme
     public static readonly FontFamily Font = new("Segoe UI Variable Text, Segoe UI, Arial");
     public static readonly Color AccentColor = Color.FromRgb(76, 141, 246);
 
+    public static System.Windows.Media.ImageSource? AppIcon
+    {
+        get
+        {
+            try { return System.Windows.Media.Imaging.BitmapFrame.Create(new Uri("pack://application:,,,/app.ico")); }
+            catch { return null; }
+        }
+    }
+
     public static Brush Res(string key) => (Brush)Application.Current.Resources[key];
 
     public static Button PillButton(string text) => new()

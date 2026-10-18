@@ -43,7 +43,7 @@ public partial class App : Application
         try
         {
             _host = new AppHost();
-            if (smoke) { _ = RunSmokeTestAsync(_host); return; }
+            if (smoke) { _ = RunSmokeTestAsync(_host, e.Args); return; }
             _instance!.ListenForActivation(() => Dispatcher.BeginInvoke(() => _host.Main.ShowPanel()));
             _host.Start(startHidden: minimized && _host.Controller.Settings.StartHidden);
             AppLog.Info("Started.");
@@ -67,19 +67,20 @@ public partial class App : Application
     /// Used by CI on a real Windows machine: starts every subsystem, opens every window, then exits.
     /// Exit code 0 means the app can actually launch and run — the check the previous version never had.
     /// </summary>
-    private async Task RunSmokeTestAsync(AppHost host)
+    private async Task RunSmokeTestAsync(AppHost host, string[] args)
     {
         var marker = Path.Combine(AppLog.DataDirectory, "smoke-result.txt");
         var steps = new List<string>();
         void Step(string name) { steps.Add(name); AppLog.Info("SMOKE step: " + name); }
-        var watchdog = new DispatcherTimer { Interval = TimeSpan.FromSeconds(90) };
+        var ask = args.FirstOrDefault(a => a.StartsWith("--smoke-ask=", StringComparison.Ordinal))?["--smoke-ask=".Length..];
+        var watchdog = new DispatcherTimer { Interval = TimeSpan.FromSeconds(ask is null ? 90 : 200) };
         watchdog.Tick += (_, _) => { File.WriteAllText(marker, "TIMEOUT after: " + string.Join(" > ", steps)); Shutdown(2); };
         watchdog.Start();
         try
         {
             Directory.CreateDirectory(AppLog.DataDirectory);
             host.Start(startHidden: false, firstRunUi: false); Step("host started (tray, hotkeys, mouse hook)");
-            host.Main.ShowPanel(); await Task.Delay(400); Step("assistant panel shown");
+            host.Main.ShowPanel(); await Task.Delay(400); Snap(host.Main, "main"); Step("assistant panel shown");
 
             foreach (var tool in DesktopTools.All) GeminiModel.ConvertSchema(tool.Schema);
             Step($"{DesktopTools.All.Count} tool schemas valid");
@@ -88,9 +89,9 @@ public partial class App : Application
             if (!Hotkey.TryParse("Ctrl+Alt+Space", out _)) throw new InvalidOperationException("hotkey parser");
             Step("hotkey parser");
 
-            var welcome = new WelcomeWindow(host); welcome.Show(); await Task.Delay(300); welcome.Close(); Step("welcome window");
+            var welcome = new WelcomeWindow(host); welcome.Show(); await Task.Delay(300); Snap(welcome, "welcome"); welcome.Close(); Step("welcome window");
             host.OpenSettings(); await Task.Delay(500);
-            foreach (var w in Windows.OfType<SettingsWindow>().ToList()) w.Close();
+            foreach (var w in Windows.OfType<SettingsWindow>().ToList()) { Snap(w, "settings"); w.Close(); }
             Step("settings window");
 
             var apps = await AppLauncher.GetInstalledAppsAsync();
@@ -99,15 +100,33 @@ public partial class App : Application
             var shot = ScreenCapture.CaptureForAgent(); Step($"screenshot {shot.Width}x{shot.Height}");
 
             var session = host.Main.Dispatcher.InvokeAsync(() => host.StartCircleSearchAsync()).Task.Unwrap();
-            await Task.Delay(1500);
-            var overlays = Windows.OfType<Window>().Count(w => w.GetType().Name == "CircleSearchWindow");
+            var overlays = 0;
+            for (var i = 0; i < 40 && overlays == 0; i++)
+            {
+                await Task.Delay(250);
+                overlays = Windows.OfType<Window>().Count(w => w.GetType().Name == "CircleSearchWindow");
+                if (session.IsFaulted) throw session.Exception!.GetBaseException();
+            }
             if (overlays == 0) throw new InvalidOperationException("Circle-to-Search overlay did not open");
-            foreach (var w in Windows.OfType<Window>().Where(w => w.GetType().Name == "CircleSearchWindow").ToList()) w.Close();
+            var overlay = Windows.OfType<CircleSearchWindow>().First();
+            await Task.Delay(400);
+            overlay.DemoSelection(); await Task.Delay(600); Snap(overlay, "overlay-selection");
+            overlay.DemoTranslation(); await Task.Delay(300); Snap(overlay, "overlay-translation");
+            foreach (var w in Windows.OfType<CircleSearchWindow>().ToList()) w.Close();
             await session.WaitAsync(TimeSpan.FromSeconds(5));
             Step($"circle-to-search overlay ({overlays} monitor(s))");
 
             var pill = new StatusPill(); pill.SetText("בדיקה"); pill.Show(); await Task.Delay(200); pill.Close(); Step("status pill");
             Toast.Show("בדיקה", "smoke test", 1); Step("toast");
+
+            if (ask is not null)
+            {
+                host.Main.ShowPanel();
+                await host.Main.SubmitAsync(ask);
+                await Task.Delay(500);
+                Snap(host.Main, "main-after-ask");
+                Step("agent request: " + ask);
+            }
 
             File.WriteAllText(marker, "SMOKE OK\n" + string.Join("\n", steps));
             AppLog.Info("SMOKE OK");
@@ -120,6 +139,35 @@ public partial class App : Application
             host.Dispose();
             Shutdown(1);
         }
+    }
+
+    /// <summary>Saves a picture of a window next to the logs (lets CI and developers see the UI).</summary>
+    private static void Snap(Window window, string name)
+    {
+        try
+        {
+            if (window.Content is not System.Windows.Media.Visual visual || window.ActualWidth < 1) return;
+            var bitmap = new System.Windows.Media.Imaging.RenderTargetBitmap((int)window.ActualWidth, (int)window.ActualHeight, 96, 96, System.Windows.Media.PixelFormats.Pbgra32);
+            bitmap.Render(visual);
+            System.Windows.Media.Imaging.BitmapSource image = bitmap;
+            if (window.FlowDirection == FlowDirection.RightToLeft)
+            {
+                // Rendering an RTL root comes out mirrored; flip the pixels back.
+                var stride = bitmap.PixelWidth * 4;
+                var pixels = new byte[stride * bitmap.PixelHeight];
+                bitmap.CopyPixels(pixels, stride, 0);
+                var flipped = new byte[pixels.Length];
+                for (var y = 0; y < bitmap.PixelHeight; y++)
+                    for (var x = 0; x < bitmap.PixelWidth; x++)
+                        Buffer.BlockCopy(pixels, y * stride + x * 4, flipped, y * stride + (bitmap.PixelWidth - 1 - x) * 4, 4);
+                image = System.Windows.Media.Imaging.BitmapSource.Create(bitmap.PixelWidth, bitmap.PixelHeight, 96, 96, System.Windows.Media.PixelFormats.Pbgra32, null, flipped, stride);
+            }
+            var encoder = new System.Windows.Media.Imaging.PngBitmapEncoder();
+            encoder.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(image));
+            using var file = File.Create(Path.Combine(AppLog.DataDirectory, $"smoke-{name}.png"));
+            encoder.Save(file);
+        }
+        catch (Exception ex) { AppLog.Warn($"Snapshot {name} failed: {ex.Message}"); }
     }
 
     protected override void OnExit(ExitEventArgs e)

@@ -56,6 +56,7 @@ public sealed class SettingsWindow : Window
         FontFamily = Theme.Font; FontSize = 13.5;
         Background = new SolidColorBrush(Color.FromRgb(248, 249, 251));
         Topmost = true;
+        Icon = Theme.AppIcon;
 
         var tabs = new TabControl { Margin = new Thickness(14, 14, 14, 0), Padding = new Thickness(16) };
         tabs.Items.Add(new TabItem { Header = "  בינה מלאכותית  ", Content = Scroll(BuildAiTab()) });
@@ -85,7 +86,7 @@ public sealed class SettingsWindow : Window
         panel.Children.Add(Note("בחר את ה\"מוח\" של העוזר. כל ספק עובד: Gemini (יש מסלול חינמי), OpenAI, Claude, Groq, OpenRouter, DeepSeek, או מודל מקומי עם Ollama. המפתח נשמר מוצפן במנהל האישורים של Windows."));
         panel.Children.Add(Row("ספק", _provider));
         var keyStack = new StackPanel { Children = { _key, _keyStatus, _keyLink } };
-        var deleteKey = new Button { Content = "מחק מפתח", Padding = new Thickness(10, 4, 10, 4) };
+        var deleteKey = new Button { Content = "מחק מפתח", Padding = new Thickness(10, 4, 10, 4), VerticalAlignment = VerticalAlignment.Top };
         deleteKey.Click += (_, _) => { if (_current is null) return; try { SecretStore.Delete(_current.Id); } catch { } UpdateKeyStatus(); };
         panel.Children.Add(Row("מפתח API", new DockPanel { Children = { keyStack } }, deleteKey));
         panel.Children.Add(Row("כתובת שרת", _baseUrl));

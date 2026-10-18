@@ -32,6 +32,7 @@ public sealed class CircleSearchSession
         try
         {
             var shots = await Task.Run(ScreenCapture.CaptureMonitors);
+            AppLog.Info($"Overlay: captured {shots.Count} monitor(s), mode {mode}");
             foreach (var shot in shots)
             {
                 var window = new CircleSearchWindow(this, shot);
@@ -41,6 +42,9 @@ public sealed class CircleSearchSession
             }
             var cursor = System.Windows.Forms.Cursor.Position;
             var active = _windows.FirstOrDefault(w => w.Contains(cursor.X, cursor.Y)) ?? _windows.First();
+            active.Activate();
+            var handle = new System.Windows.Interop.WindowInteropHelper(active).Handle;
+            if (Native.GetForegroundWindow() != handle) await Task.Run(() => WindowManager.Focus(handle));
             active.Activate();
             active.Focus();
             if (mode == OverlayStartMode.TranslateScreen)

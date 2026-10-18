@@ -23,7 +23,7 @@ public sealed class SingleInstance : IDisposable
 
     public void SignalFirstInstance()
     {
-        try { _activate.Set(); } catch (Exception ex) { AppLog.Error("Could not signal running instance", ex); }
+        try { Native.AllowSetForegroundWindow(-1); _activate.Set(); } catch (Exception ex) { AppLog.Error("Could not signal running instance", ex); }
     }
 
     public void ListenForActivation(Action onActivate)

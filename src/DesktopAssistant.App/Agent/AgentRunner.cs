@@ -100,7 +100,7 @@ public sealed class AgentRunner(IChatModel model, AgentContext context)
     {
         var he = new CultureInfo("he-IL");
         var now = DateTime.Now;
-        var foreground = Native.GetWindowTitle(Native.GetForegroundWindow());
+        var foreground = context.PreviousWindowTitle;
         var windows = string.Join("; ", WindowManager.List().Take(15).Select(w => $"\"{Truncate(w.Title, 60)}\" ({w.ProcessName})"));
         var memory = context.Settings.Memory.Count == 0 ? "(none yet)" : string.Join("\n", context.Settings.Memory.Select(m => "- " + m));
         return $"""
@@ -109,7 +109,7 @@ public sealed class AgentRunner(IChatModel model, AgentContext context)
 
             Context
             - Now: {now.ToString("dddd, d MMMM yyyy, HH:mm", he)} ({now:yyyy-MM-dd}). Windows user: {Environment.UserName}.
-            - Window in focus before you were called: "{foreground}"
+            - The user was working in this window when they called you: "{foreground}" (default target for typing / "here" / "this")
             - Open windows: {windows}
             - Remembered about the user:
             {memory}

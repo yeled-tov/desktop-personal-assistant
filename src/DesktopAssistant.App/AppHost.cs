@@ -100,7 +100,11 @@ public sealed class AppHost : IDisposable
             OpenSettings = OpenSettings,
         };
         try { await session.RunAsync(mode); }
-        catch (Exception ex) { Toast.Show("הקף וחפש", "לא הצלחתי להקפיא את המסך: " + ex.Message); }
+        catch (Exception ex)
+        {
+            AppLog.Error("Overlay failed", ex);
+            Toast.Show("הקף וחפש", "לא הצלחתי להקפיא את המסך: " + ex.Message);
+        }
     }
 
     private void AskAboutImage(BitmapSource image, string question)

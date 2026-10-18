@@ -14,6 +14,8 @@ public sealed record ToolOutput(string Text, ImagePart? Image = null, bool IsErr
 public sealed class AgentContext
 {
     public required AppSettings Settings { get; init; }
+    /// <summary>Title of the window the user was in when they called the assistant.</summary>
+    public string PreviousWindowTitle { get; init; } = "";
     /// <summary>Asks the user to approve a sensitive action. (title, details) → approved?</summary>
     public required Func<string, string, Task<bool>> Confirm { get; init; }
     /// <summary>Short live status for the UI ("מקליד ב-Word…").</summary>

@@ -22,6 +22,9 @@ public partial class MainWindow : Window
     private CancellationTokenSource? _recordStop;
     private bool _hiddenForAction;
     private bool _positioned;
+    private nint _previousWindow; // the app the user was in when they called the assistant
+
+    public string PreviousWindowTitle => _previousWindow != 0 ? Native.GetWindowTitle(_previousWindow) : "";
 
     public bool IsBusy => _run is not null;
     public bool IsRecording => _recordCancel is not null;
@@ -49,6 +52,9 @@ public partial class MainWindow : Window
 
     public void ShowPanel(bool activate = true)
     {
+        var foreground = Native.GetForegroundWindow();
+        Native.GetWindowThreadProcessId(foreground, out var pid);
+        if (foreground != 0 && pid != Environment.ProcessId) _previousWindow = foreground;
         if (!_positioned)
         {
             var area = SystemParameters.WorkArea;
@@ -173,6 +179,7 @@ public partial class MainWindow : Window
         var context = new AgentContext
         {
             Settings = _host.Controller.Settings,
+            PreviousWindowTitle = PreviousWindowTitle,
             Confirm = (title, details) => Dispatcher.InvokeAsync(() => ConfirmWindow.Ask(title, details)).Task,
             Activity = status => Dispatcher.BeginInvoke(() => { ActivityText.Text = status; _pill.SetText(status); }),
             PrepareForDesktopAction = () => Dispatcher.InvokeAsync(() =>
@@ -182,7 +189,12 @@ public partial class MainWindow : Window
                 Hide();
                 _pill.SetText(ActivityText.Text);
                 _pill.Show();
-            }).Task.ContinueWith(_ => Task.Delay(180)).Unwrap(),
+            }).Task.ContinueWith(async _ =>
+            {
+                // Give focus back to the app the user was working in (e.g. Word), so typing lands there.
+                if (_previousWindow != 0 && Native.IsWindowVisible(_previousWindow)) await Task.Run(() => WindowManager.Focus(_previousWindow));
+                await Task.Delay(150);
+            }).Unwrap(),
             SetOverlayVisible = visible => Dispatcher.InvokeAsync(() => _pill.Opacity = visible ? 1 : 0).Task,
             OpenScreenTranslation = () => Dispatcher.InvokeAsync(() => { _ = _host.StartTranslationAsync(); }).Task,
             Notify = (title, message) => Toast.Show(title, message, 30),

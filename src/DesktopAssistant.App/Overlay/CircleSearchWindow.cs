@@ -15,7 +15,7 @@ using DesktopAssistant.UI;
 namespace DesktopAssistant.Overlay;
 
 /// <summary>One frozen monitor. Draw around anything to search it.</summary>
-internal sealed class CircleSearchWindow : Window
+public sealed class CircleSearchWindow : Window
 {
     private readonly CircleSearchSession _session;
     private readonly MonitorShot _shot;
@@ -40,7 +40,7 @@ internal sealed class CircleSearchWindow : Window
     private Rect _regionsArea;
     private bool _showOriginal;
 
-    public CircleSearchWindow(CircleSearchSession session, MonitorShot shot)
+    internal CircleSearchWindow(CircleSearchSession session, MonitorShot shot)
     {
         _session = session;
         _shot = shot;
@@ -459,6 +459,31 @@ internal sealed class CircleSearchWindow : Window
         }
         else if (e.Key == Key.O && _regions.Count > 0 && Keyboard.FocusedElement is not TextBox) { _showOriginal = !_showOriginal; RenderTranslation(); e.Handled = true; }
         else if (e.Key == Key.T && Keyboard.Modifiers == ModifierKeys.None && Keyboard.FocusedElement is not TextBox) { _ = TranslateWholeScreenAsync(); e.Handled = true; }
+    }
+
+    // ---------------- used by the smoke test to render the UI states ----------------
+
+    internal void DemoSelection()
+    {
+        var w = ActualWidth; var h = ActualHeight;
+        Select(new Rect(w * 0.36, h * 0.22, w * 0.28, h * 0.22));
+        _work?.Cancel();
+        _sheet.ShowAnswer("זהו לוגו של העוזר האישי. זה מצב הדגמה של \"הקף וחפש\": כאן תופיע תשובת ה-AI על מה שסימנת, עם כפתורים לחיפוש בגוגל, Lens, תרגום והעתקת טקסט.", "Desktop assistant logo");
+    }
+
+    internal void DemoTranslation()
+    {
+        ClearSelection();
+        _regions =
+        [
+            new TranslatedRegion("File", "קובץ", 0.02, 0.02, 0.08, 0.05),
+            new TranslatedRegion("Settings", "הגדרות", 0.10, 0.02, 0.18, 0.05),
+            new TranslatedRegion("Welcome to the application", "ברוכים הבאים לאפליקציה", 0.30, 0.40, 0.70, 0.46),
+        ];
+        _regionsArea = new Rect(0, 0, ActualWidth, ActualHeight);
+        RenderTranslation();
+        _hintText.Text = "תורגמו 3 קטעים · לחץ O להצגת המקור · Esc ליציאה";
+        _hint.Visibility = Visibility.Visible;
     }
 
     protected override void OnClosed(EventArgs e)
